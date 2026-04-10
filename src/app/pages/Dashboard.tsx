@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { VersiaLogo } from "../components/VersiaLogo";
+import { PremiumBadge } from "../components/PremiumBadge";
 import { 
   Home, 
   BookOpen, 
@@ -15,12 +16,16 @@ import {
   Target,
   Zap,
   Menu,
-  X
+  X,
+  Crown,
+  Sparkles,
+  ArrowRight
 } from "lucide-react";
 import { useState } from "react";
 
 export function Dashboard() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [isPremium, setIsPremium] = useState(false); // Simula status de assinatura
   
   const courses = [
     {
@@ -31,6 +36,7 @@ export function Dashboard() {
       duration: "8h",
       thumbnail: "https://images.unsplash.com/photo-1770240366266-57290c83cd5f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsZWFkZXJzaGlwJTIwZGV2ZWxvcG1lbnQlMjBtZW50b3IlMjBjb2FjaGluZ3xlbnwxfHx8fDE3NzQyMzQ0ODV8MA&ixlib=rb-4.1.0&q=80&w=1080",
       category: "Liderança",
+      isPremium: false,
     },
     {
       id: 2,
@@ -40,6 +46,7 @@ export function Dashboard() {
       duration: "12h",
       thumbnail: "https://images.unsplash.com/photo-1759661966728-4a02e3c6ed91?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkYXRhJTIwYW5hbHl0aWNzJTIwZGFzaGJvYXJkJTIwdGVjaG5vbG9neXxlbnwxfHx8fDE3NzQxNzc3NTd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       category: "Tecnologia",
+      isPremium: true,
     },
     {
       id: 3,
@@ -49,6 +56,7 @@ export function Dashboard() {
       duration: "10h",
       thumbnail: "https://images.unsplash.com/photo-1768224656445-33d078c250b7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjeWJlcnNlY3VyaXR5JTIwZGlnaXRhbCUyMG5ldHdvcmslMjBzZWN1cml0eXxlbnwxfHx8fDE3NzQyMzQ0ODZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       category: "Segurança",
+      isPremium: true,
     },
   ];
 
@@ -262,6 +270,63 @@ export function Dashboard() {
             </div>
           </div>
         </section>
+
+        {/* Premium Upgrade Banner (only if not premium) */}
+        {!isPremium && (
+          <section className="px-4 md:px-8 py-6">
+            <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-[#0a0a0a] via-[#1a1510] to-[#0a0a0a] border border-[#FFD700]/30 p-6 md:p-10">
+              {/* Decorative Elements */}
+              <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+                <div className="absolute top-4 left-4 w-24 md:w-40 h-24 md:h-40 border-2 border-[#FFD700] rounded-full"></div>
+                <div className="absolute bottom-4 right-4 w-32 md:w-48 h-32 md:h-48 border-2 border-[#FF8C00] rounded-full"></div>
+              </div>
+              
+              <div className="absolute inset-0 bg-gradient-to-r from-[#FFD700]/5 via-transparent to-[#FF8C00]/5 pointer-events-none"></div>
+              
+              <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-8">
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-[#FFD700] to-[#FF8C00] flex items-center justify-center">
+                    <Crown className="w-8 h-8 md:w-10 md:h-10 text-white" />
+                  </div>
+                </div>
+                
+                <div className="flex-1 text-center md:text-left">
+                  <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
+                    <PremiumBadge variant="medium" />
+                    <Sparkles className="w-5 h-5 text-[#FFD700]" />
+                  </div>
+                  <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                    Desbloqueie todo o potencial da Versia
+                  </h3>
+                  <p className="text-white/70 text-sm md:text-base mb-1">
+                    Acesso ilimitado • Mentorias 1:1 • Certificados premium • Downloads sem limite
+                  </p>
+                  <p className="text-[#FFD700] font-semibold text-lg md:text-xl">
+                    Apenas R$ 24,90/mês
+                  </p>
+                </div>
+                
+                <div className="flex-shrink-0 w-full md:w-auto">
+                  <Link to="/subscription" className="block">
+                    <button 
+                      className="w-full md:w-auto px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-base text-white shadow-2xl hover:scale-105 transition-all flex items-center justify-center gap-2"
+                      style={{
+                        background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%)',
+                      }}
+                    >
+                      <Crown className="w-5 h-5" />
+                      Assinar Premium
+                      <ArrowRight className="w-5 h-5" />
+                    </button>
+                  </Link>
+                  <p className="text-white/60 text-xs text-center mt-2">
+                    🎁 7 dias grátis para testar
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Continue Studying */}
         <section className="px-4 md:px-8 py-6 md:py-8">

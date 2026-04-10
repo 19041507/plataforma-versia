@@ -32,9 +32,6 @@ export function LoginMobile() {
             <h1 className="text-3xl font-bold text-white mb-3 leading-tight">
               Transforme o aprendizado
             </h1>
-            <p className="text-base text-white/70">
-              Plataforma corporativa premium com experiência imersiva
-            </p>
           </div>
 
           {/* Feature Cards */}
@@ -43,8 +40,8 @@ export function LoginMobile() {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#63E3FF] to-[#2FA7FF] flex items-center justify-center mb-2">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
-              <h3 className="text-white text-sm font-semibold mb-1">Interface Premium</h3>
-              <p className="text-white/60 text-xs">Design sofisticado</p>
+              <h3 className="text-white text-sm font-semibold mb-1">Aprofunde Sua Jornada</h3>
+              <p className="text-white/60 text-xs">Eleve Seu Acesso</p>
             </div>
 
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">

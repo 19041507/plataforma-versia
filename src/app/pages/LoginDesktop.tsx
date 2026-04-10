@@ -32,7 +32,7 @@ export function LoginDesktop() {
                 Transforme o aprendizado da sua empresa
               </h1>
               <p className="text-xl text-white/70 leading-relaxed">
-                Plataforma corporativa premium com experiência imersiva e foco em retenção de conhecimento.
+                Plataforma com experiência imersiva e foco em retenção de conhecimento.
               </p>
             </div>
           </div>
@@ -43,8 +43,8 @@ export function LoginDesktop() {
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#63E3FF] to-[#2FA7FF] flex items-center justify-center mb-3">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <h3 className="text-white font-semibold mb-1">Interface Premium</h3>
-              <p className="text-white/60 text-sm">Interface sofisticada e intuitiva</p>
+              <h3 className="text-white font-semibold mb-1">Interface </h3>
+              <p className="text-white/60 text-sm">Interface intuitiva</p>
             </div>
 
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all">
