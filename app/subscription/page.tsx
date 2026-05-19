@@ -25,8 +25,7 @@ import { useState } from "react";
 
 export default function SubscriptionPage() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
-
-  const plans = [
+ const plans = [
     {
       name: "Gratuito",
       price: "0,00",
@@ -48,6 +47,31 @@ export default function SubscriptionPage() {
       ],
       cta: "Plano Atual",
       popular: false,
+    },
+    {
+      name: "Essencial",
+      price: "14,90",
+      period: "por mês",
+      annualPrice: "149,00",
+      annualPeriod: "por ano",
+      description: "O essencial para dar o próximo passo na sua carreira",
+      icon: Zap,
+      color: "from-blue-400 to-blue-600",
+      features: [
+        { text: "Todos os recursos do plano gratuito", included: true },
+        { text: "Acesso a cursos premium selecionados", included: true },
+        { text: "Certificados digitais padrão", included: true },
+        { text: "Downloads de PDFs", included: true },
+        { text: "Até 5 cursos simultâneos", included: true },
+        { text: "Suporte via email prioritário (24h)", included: true },
+        { text: "Mentorias individuais", included: false },
+        { text: "Acesso antecipado", included: false },
+        { text: "Certificados premium", included: false },
+        { text: "Relatórios personalizados", included: false },
+      ],
+      cta: "Assinar Essencial",
+      popular: false,
+      savings: billingCycle === "annual" ? "Economize R$ 29/ano" : undefined,
     },
     {
       name: "Premium",
@@ -251,7 +275,7 @@ export default function SubscriptionPage() {
 
         {/* Pricing Plans */}
         <section className="px-4 md:px-8 pb-16 md:pb-20">
-          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
             {plans.map((plan) => (
               <div
                 key={plan.name}
