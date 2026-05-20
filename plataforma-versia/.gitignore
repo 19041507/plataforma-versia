@@ -1,15 +1,21 @@
-cat > .gitignore << 'EOF'
+# Python / Django
 __pycache__/
 *.py[cod]
 env/
 venv/
 .env
-node_modules/
-.vscode/
-.DS_Store
-.next/
 staticfiles/
 media/
 *.log
 db.sqlite3
-EOF
+
+# Node / Next.js
+node_modules/
+.next/
+.vscode/
+.DS_Store
+
+# Deploy VPS / Nginx / Docker Prod (ignorado para deploy Railway/Vercel)
+docker-compose.prod.yml
+deploy.sh
+nginx/
