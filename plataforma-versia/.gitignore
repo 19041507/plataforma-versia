@@ -7,4 +7,9 @@ venv/
 node_modules/
 .vscode/
 .DS_Store
+.next/
+staticfiles/
+media/
+*.log
+db.sqlite3
 EOF

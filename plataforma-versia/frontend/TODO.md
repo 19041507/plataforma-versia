@@ -1,8 +1,0 @@
-- [ ] Mapear estrutura atual do front e pontos de entrada (App, layout, rotas e páginas de login)
-- [ ] Implementar camada de API central (base URL, headers, tenant e token JWT)
-- [ ] Implementar contexto de autenticação (login/logout/usuário atual/persistência)
-- [ ] Integrar telas de login (desktop e mobile) com endpoint real do backend
-- [ ] Proteger rotas privadas com guard de autenticação
-- [ ] Conectar páginas principais aos endpoints reais com loading/erro
-- [ ] Adicionar configuração de ambiente (.env.example) para API/tenant
-- [ ] Validar E2E front-back (login e navegação autenticada) e ajustar falhas
