@@ -19,24 +19,28 @@ import {
   X,
   Menu
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect, type MouseEvent } from "react";
 
 export default function LessonPage() {
   const { id } = useParams();
   const [isPlaying, setIsPlaying] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
-  const [currentTime, setCurrentTime] = useState(245); // 4:05
-  const totalTime = 900; // 15:00
+  const [currentTime, setCurrentTime] = useState(0);
+  const [totalTime, setTotalTime] = useState(900); // will be updated from video metadata
+  const [volume, setVolume] = useState(0.75);
+  const [isMuted, setIsMuted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   
-  const progress = (currentTime / totalTime) * 100;
+  const progress = totalTime ? (currentTime / totalTime) * 100 : 0;
 
   const lessons = [
-    { id: 1, title: "Introdução à Liderança 4.0", duration: "15min", completed: true },
-    { id: 2, title: "O Papel do Líder na Era Digital", duration: "20min", completed: true },
-    { id: 3, title: "Estilos de Liderança Contemporâneos", duration: "25min", completed: true },
-    { id: 4, title: "Autoconhecimento e Inteligência Emocional", duration: "30min", completed: false, current: true },
-    { id: 5, title: "Comunicação Assertiva", duration: "20min", completed: false },
-    { id: 6, title: "Técnicas de Persuasão", duration: "25min", completed: false },
+    { id: 1, title: "Introdução à Liderança 4.0", duration: "10:53", completed: true, videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", poster: "https://peach.blender.org/wp-content/uploads/title_an_full.jpg" },
+    { id: 2, title: "O Papel do Líder na Era Digital", duration: "12:12", completed: true, videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4", poster: "https://mango.blender.org/wp-content/uploads/2012/05/01_vfx_preview_01.png" },
+    { id: 3, title: "Estilos de Liderança Contemporâneos", duration: "14:48", completed: true, videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4", poster: "https://durian.blender.org/wp-content/uploads/2010/05/sintel_poster_01.jpg" },
+    { id: 4, title: "Autoconhecimento e Inteligência Emocional", duration: "09:56", completed: false, current: true, videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", poster: "https://peach.blender.org/wp-content/uploads/bbb-splash.png" },
+    { id: 5, title: "Comunicação Assertiva", duration: "00:15", completed: false, videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", poster: "https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=1080" },
+    { id: 6, title: "Técnicas de Persuasão", duration: "25:00", completed: false },
   ];
 
   const materials = [
@@ -49,6 +53,78 @@ export default function LessonPage() {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const lessonId = Number(id);
+  const currentLesson = lessons.find((l) => l.id === lessonId) || lessons[0];
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+
+    const onTime = () => setCurrentTime(Math.floor(v.currentTime));
+    const onMeta = () => setTotalTime(Math.floor(v.duration || 0));
+
+    v.addEventListener('timeupdate', onTime);
+    v.addEventListener('loadedmetadata', onMeta);
+
+    return () => {
+      v.removeEventListener('timeupdate', onTime);
+      v.removeEventListener('loadedmetadata', onMeta);
+    };
+  }, [currentLesson.videoUrl]); // Re-anexa os eventos sempre que o vídeo mudar
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.volume = volume;
+    v.muted = isMuted;
+  }, [volume, isMuted]);
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+
+    if (isPlaying) {
+      const playPromise = v.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          if (error.name !== "AbortError") {
+            console.error("Erro ao reproduzir vídeo:", error);
+          }
+        });
+      }
+    } else {
+      v.pause();
+    }
+  }, [isPlaying, currentLesson.videoUrl]);
+
+  const seekVideo = (event: MouseEvent<HTMLDivElement>) => {
+    const bar = event.currentTarget;
+    const rect = bar.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const newTime = (clickX / rect.width) * totalTime;
+    const v = videoRef.current;
+    if (v) {
+      v.currentTime = newTime;
+      setCurrentTime(Math.floor(newTime));
+    }
+  };
+
+  const toggleMute = () => {
+    setIsMuted((prev) => !prev);
+  };
+
+  const toggleFullscreen = () => {
+    if (!containerRef.current) return;
+
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch((err) => {
+        console.error(`Erro ao tentar ativar modo tela cheia: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
   };
 
   return (
@@ -78,12 +154,27 @@ export default function LessonPage() {
           {/* Video Player */}
           <div className="flex-1 flex items-center justify-center relative group">
             {/* Video Thumbnail/Player */}
-            <div className="relative w-full h-full max-h-[calc(100vh-200px)] flex items-center justify-center bg-gradient-to-br from-[#050505] to-[#0a0a0a]">
-              <img 
-                src="https://images.unsplash.com/photo-1770240366266-57290c83cd5f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsZWFkZXJzaGlwJTIwZGV2ZWxvcG1lbnQlMjBtZW50b3IlMjBjb2FjaGluZ3xlbnwxfHx8fDE3NzQyMzQ0ODV8MA&ixlib=rb-4.1.0&q=80&w=1080"
-                alt="Video"
-                className="max-w-full max-h-full object-contain"
-              />
+            <div 
+              ref={containerRef}
+              className="relative w-full h-full max-h-[calc(100vh-200px)] flex items-center justify-center bg-gradient-to-br from-[#050505] to-[#0a0a0a]"
+            >
+              {currentLesson.videoUrl ? (
+                <video
+                  key={currentLesson.videoUrl}
+                  ref={videoRef}
+                  poster={currentLesson.poster}
+                  className="w-full h-full max-w-full max-h-full object-contain"
+                  playsInline
+                >
+                  <source src={currentLesson.videoUrl} type="video/mp4" />
+                </video>
+              ) : (
+                <img 
+                  src={currentLesson.poster || "https://images.unsplash.com/photo-1770240366266-57290c83cd5f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"}
+                  alt="Video"
+                  className="max-w-full max-h-full object-contain"
+                />
+              )}
               
               {/* Play Button Overlay */}
               {!isPlaying && (
@@ -101,7 +192,7 @@ export default function LessonPage() {
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6 opacity-0 group-hover:opacity-100 transition-opacity">
                 {/* Progress Bar */}
                 <div className="mb-4">
-                  <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden cursor-pointer hover:h-2 transition-all">
+                  <div onClick={seekVideo} className="w-full h-1 bg-white/20 rounded-full overflow-hidden cursor-pointer hover:h-2 transition-all">
                     <div 
                       className="h-full bg-gradient-to-r from-[#63E3FF] to-[#7A2CFF]"
                       style={{ width: `${progress}%` }}
@@ -123,10 +214,26 @@ export default function LessonPage() {
                       )}
                     </button>
                     <div className="flex items-center gap-2">
-                      <Volume2 className="w-5 h-5 text-white" />
-                      <div className="w-20 h-1 bg-white/20 rounded-full overflow-hidden">
-                        <div className="h-full bg-white w-3/4"></div>
-                      </div>
+                      <button
+                        onClick={toggleMute}
+                        className="p-1 rounded-full bg-white/10 hover:bg-white/20 transition-all"
+                      >
+                        <Volume2 className="w-4 h-4 text-white" />
+                      </button>
+                      <input
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        value={isMuted ? 0 : volume}
+                        onChange={(e) => {
+                          setVolume(Number(e.target.value));
+                          if (isMuted && Number(e.target.value) > 0) {
+                            setIsMuted(false);
+                          }
+                        }}
+                        className="w-24 h-1 bg-white/20 accent-[#63E3FF]"
+                      />
                     </div>
                     <span className="text-white text-sm">
                       {formatTime(currentTime)} / {formatTime(totalTime)}
@@ -136,7 +243,10 @@ export default function LessonPage() {
                     <button className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-all">
                       <Settings className="w-5 h-5 text-white" />
                     </button>
-                    <button className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-all">
+                    <button 
+                      onClick={toggleFullscreen}
+                      className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-all"
+                    >
                       <Maximize className="w-5 h-5 text-white" />
                     </button>
                   </div>

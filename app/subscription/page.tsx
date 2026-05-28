@@ -13,7 +13,7 @@ import {
   Award,
   Download,
   Users,
-  HeadphonesIcon,
+  Headphones,
   TrendingUp,
   Sparkles,
   Shield,
@@ -121,7 +121,7 @@ export default function SubscriptionPage() {
       color: "from-[#7A2CFF] to-[#E548FF]",
     },
     {
-      icon: HeadphonesIcon,
+      icon: Headphones,
       title: "Suporte Prioritário",
       description: "Atendimento 24/7 com tempo de resposta garantido em até 2 horas",
       color: "from-[#2FA7FF] to-[#7A2CFF]",

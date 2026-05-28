@@ -12,16 +12,22 @@ export function LogoutButton({ variant = "sidebar" }: LogoutButtonProps) {
   const router = useRouter();
   const [showConfirm, setShowConfirm] = useState(false);
 
-  function handleLogout() {
+  async function handleLogout() {
     try {
-      localStorage.removeItem("versia_user");
-      localStorage.removeItem("versia_session");
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // Se a rota falhar, ainda redirecionamos para fora da área autenticada.
+    }
+
+    try {
+      localStorage.removeItem('versia_user');
+      localStorage.removeItem('versia_session');
       sessionStorage.clear();
     } catch {
       // Mantém a saída funcionando mesmo se o armazenamento estiver indisponível.
     }
 
-    router.push("/login-desktop");
+    router.push('/login-desktop');
   }
 
   const buttonClass = variant === "header"
