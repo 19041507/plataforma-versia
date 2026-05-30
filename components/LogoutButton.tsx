@@ -41,10 +41,15 @@ export function LogoutButton({ variant = "sidebar" }: LogoutButtonProps) {
       <button
         type="button"
         onClick={() => setShowConfirm(true)}
-        className={buttonClass}
+        className={`${buttonClass} group relative`}
       >
         <LogOut className={iconClass} />
         <span className="font-medium">Sair</span>
+
+        {/* Tooltip visual */}
+        <div className={`absolute left-1/2 -translate-x-1/2 px-2 py-1 bg-black/80 backdrop-blur-md border border-white/10 rounded text-[10px] text-white opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-[110] shadow-xl ${variant === 'header' ? 'top-full mt-2' : 'bottom-full mb-2'}`}>
+          Encerrar sessão
+        </div>
       </button>
 
       {showConfirm && (

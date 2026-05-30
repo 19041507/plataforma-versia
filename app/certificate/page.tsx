@@ -8,8 +8,9 @@ import {
   Home, 
   BookOpen, 
   Award, 
-  Settings, 
-  Bell, 
+  Settings,
+  Bell,
+  BellOff, 
   User,
   Download,
   Share2,
@@ -22,10 +23,25 @@ import {
   Menu,
   X
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function CertificatePage() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [notificationTooltip, setNotificationTooltip] = useState<string | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('versia_notifications_enabled');
+    if (saved !== null) setNotificationsEnabled(saved === 'true');
+  }, []);
+
+  const toggleNotifications = () => {
+    const newState = !notificationsEnabled;
+    setNotificationsEnabled(newState);
+    localStorage.setItem('versia_notifications_enabled', String(newState));
+    setNotificationTooltip(newState ? "Notificações ativadas" : "Notificações desativadas");
+    setTimeout(() => setNotificationTooltip(null), 2000);
+  };
   
   const certificates = [
     {
@@ -125,7 +141,7 @@ export default function CertificatePage() {
           </Link>
           <Link href="/courses" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
             <BookOpen className="w-5 h-5" />
-            <span className="font-medium">Meus Cursos</span>
+            <span className="font-medium">Catálogo de Cursos</span>
           </Link>
           <Link href="/certificate" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-[#63E3FF]/20 to-[#7A2CFF]/20 text-white mb-2">
             <Award className="w-5 h-5" />
@@ -168,9 +184,21 @@ export default function CertificatePage() {
               <p className="text-white/60 text-xs md:text-sm mt-1">Acompanhe seu progresso e celebre suas conquistas</p>
             </div>
             <div className="flex items-center gap-4">
-              <button className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all">
-                <Bell className="w-5 h-5" />
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={toggleNotifications}
+                  className={`w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all ${
+                    notificationsEnabled ? 'text-[#63E3FF] hover:bg-[#63E3FF]/10' : 'text-white/40 hover:text-white/60'
+                  }`}
+                >
+                  {notificationsEnabled ? <Bell className="w-5 h-5" /> : <BellOff className="w-5 h-5" />}
+                </button>
+                {notificationTooltip && (
+                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/90 backdrop-blur-md border border-white/10 rounded-lg text-[10px] text-white animate-in fade-in slide-in-from-top-1 duration-200 whitespace-nowrap z-[60] shadow-2xl">
+                    {notificationTooltip}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </header>

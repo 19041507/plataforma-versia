@@ -38,7 +38,7 @@ export function Sidebar({ currentPage, showMobile }: SidebarProps) {
           }`}
         >
           <BookOpen className="w-5 h-5" />
-          <span className="font-medium">Meus Cursos</span>
+          <span className="font-medium">Catálogo de Cursos</span>
         </Link>
         <Link 
           href="/certificate" 

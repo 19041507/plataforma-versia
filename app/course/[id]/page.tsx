@@ -22,15 +22,36 @@ import {
   ArrowLeft,
   Star,
   Users,
+  FileText,
+  Download,
   Menu,
-  X
+  X,
+  Lock,
+  BellOff
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export default function CoursePage() {
   const { id } = useParams();
   const [expandedModules, setExpandedModules] = useState<number[]>([0]);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [completedIds, setCompletedIds] = useState<number[]>([]);
+  const [toast, setToast] = useState<{ message: string, type: 'success' | 'info' } | null>(null);
+  const [downloadingFile, setDownloadingFile] = useState<{ name: string, progress: number } | null>(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [notificationTooltip, setNotificationTooltip] = useState("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem('versia_progress_1');
+    if (saved) setCompletedIds(JSON.parse(saved));
+  }, []);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const toggleModule = (index: number) => {
     setExpandedModules(prev =>
@@ -45,11 +66,11 @@ export default function CoursePage() {
     instructor: {
       name: "Ana Silva",
       role: "Especialista em Liderança Corporativa",
-      avatar: "https://images.unsplash.com/photo-1573497491306-c8a68afac6f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3b21hbiUyMGJ1c2luZXNzJTIwcHJvZmVzc2lvbmFsJTIwZXhlY3V0aXZlfGVufDF8fHx8MTc3NDIzNDQ4N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&h=400&auto=format&fit=crop",
     },
     thumbnail: "https://images.unsplash.com/photo-1770240366266-57290c83cd5f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsZWFkZXJzaGlwJTIwZGV2ZWxvcG1lbnQlMjBtZW50b3IlMjBjb2FjaGluZ3xlbnwxfHx8fDE3NzQyMzQ0ODV8MA&ixlib=rb-4.1.0&q=80&w=1080",
     description: "Desenvolva habilidades de liderança moderna e estratégica para liderar equipes de alto desempenho na era digital. Este curso aborda técnicas avançadas de gestão, comunicação efetiva e tomada de decisão estratégica.",
-    progress: 65,
+    progress: 0, // Será calculado dinamicamente
     duration: "8h",
     students: 1240,
     rating: 4.8,
@@ -98,11 +119,59 @@ export default function CoursePage() {
     ],
   };
 
-  const totalLessons = courseData.modules.reduce((acc, module) => acc + module.lessons.length, 0);
-  const completedLessons = courseData.modules.reduce(
-    (acc, module) => acc + module.lessons.filter(l => l.completed).length, 
-    0
-  );
+  const materials = [
+    { name: "Slides da Aula.pdf", size: "2.5 MB" },
+    { name: "Exercícios Práticos.pdf", size: "1.2 MB" },
+    { name: "Material Complementar.pdf", size: "3.8 MB" },
+  ];
+
+  const toggleNotifications = () => {
+    const newState = !notificationsEnabled;
+    setNotificationsEnabled(newState);
+    localStorage.setItem('versia_notifications_enabled', String(newState));
+    setNotificationTooltip(newState ? "Notificações ativadas" : "Notificações desativadas");
+    setTimeout(() => setNotificationTooltip(""), 2000);
+    setToast({
+      message: newState ? "Notificações ativadas!" : "Notificações desativadas!",
+      type: 'info'
+    });
+  };
+
+  const handleDownload = useCallback((fileName: string) => {
+    if (downloadingFile) return;
+    
+    setDownloadingFile({ name: fileName, progress: 0 });
+    let p = 0;
+    const interval = setInterval(() => {
+      p += 10;
+      setDownloadingFile(prev => prev ? { ...prev, progress: p } : null);
+      if (p >= 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          setDownloadingFile(null);
+          setToast({ message: `Download de "${fileName}" concluído!`, type: 'success' });
+        }, 500);
+      }
+    }, 300);
+  }, [downloadingFile]);
+
+  // Mapeia as aulas para incluir o estado real de conclusão e bloqueio
+  const allLessons = courseData.modules.flatMap(m => m.lessons);
+  const totalLessons = allLessons.length;
+  const completedCount = completedIds.length;
+  const dynamicProgress = Math.round((completedCount / totalLessons) * 100);
+
+  const modulesWithStatus = courseData.modules.map(module => ({
+    ...module,
+    lessons: module.lessons.map(lesson => {
+      const isCompleted = completedIds.includes(lesson.id);
+      // Uma aula está bloqueada se não for a primeira e a anterior não estiver concluída
+      const isLocked = lesson.id > 1 && !completedIds.includes(lesson.id - 1);
+      return { ...lesson, completed: isCompleted, locked: isLocked };
+    })
+  }));
+
+  const nextLessonId = allLessons.find(l => !completedIds.includes(l.id))?.id || 1;
 
   return (
     <div className="min-h-screen bg-[#050505]">
@@ -138,7 +207,7 @@ export default function CoursePage() {
           </Link>
           <Link href="/courses" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-[#63E3FF]/20 to-[#7A2CFF]/20 text-white mb-2">
             <BookOpen className="w-5 h-5" />
-            <span className="font-medium">Meus Cursos</span>
+            <span className="font-medium">Catálogo de Cursos</span>
           </Link>
           <Link href="/certificate" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
             <Award className="w-5 h-5" />
@@ -184,9 +253,22 @@ export default function CoursePage() {
               </Link>
             </div>
             <div className="flex items-center gap-4">
-              <button className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all">
-                <Bell className="w-5 h-5" />
-              </button>
+              <div className="relative group">
+                <button 
+                  onClick={toggleNotifications}
+                  className={`w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all ${
+                    notificationsEnabled ? 'text-[#63E3FF] hover:bg-[#63E3FF]/10' : 'text-white/40 hover:text-white/60'
+                  }`}
+                >
+                  {notificationsEnabled ? <Bell className="w-5 h-5" /> : <BellOff className="w-5 h-5" />}
+                </button>
+        
+        {Boolean(notificationTooltip) && (
+          <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/90 backdrop-blur-md border border-white/10 rounded-lg text-[10px] text-white animate-in fade-in slide-in-from-top-1 duration-200 whitespace-nowrap z-[60] shadow-2xl">
+            {notificationTooltip}
+          </div>
+        )}
+              </div>
             </div>
           </div>
         </header>
@@ -237,24 +319,24 @@ export default function CoursePage() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-lg md:text-xl font-semibold text-white mb-1">Seu Progresso</h3>
-                  <p className="text-white/60 text-xs md:text-sm">{completedLessons} de {totalLessons} aulas concluídas</p>
+                  <p className="text-white/60 text-xs md:text-sm">{completedCount} de {totalLessons} aulas concluídas</p>
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-white">{courseData.progress}%</div>
+                <div className="text-2xl md:text-3xl font-bold text-white">{dynamicProgress}%</div>
               </div>
               <div className="w-full h-2 md:h-3 bg-white/10 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-[#63E3FF] via-[#2FA7FF] to-[#7A2CFF] transition-all duration-500"
-                  style={{ width: `${courseData.progress}%` }}
+                  className="h-full bg-gradient-to-r from-[#63E3FF] via-[#2FA7FF] to-[#7A2CFF] transition-all duration-700"
+                  style={{ width: `${dynamicProgress}%` }}
                 ></div>
               </div>
-              <Link href="/lesson/1">
+              <Link href={`/lesson/${nextLessonId}`}>
                 <button className="mt-4 md:mt-6 w-full px-5 md:px-6 py-3 md:py-4 rounded-xl font-semibold text-white flex items-center justify-center gap-2 shadow-lg shadow-[#63E3FF]/20 hover:shadow-[#63E3FF]/40 hover:scale-105 transition-all text-sm md:text-base"
                   style={{
                     background: 'linear-gradient(135deg, #63E3FF 0%, #2FA7FF 30%, #7A2CFF 65%, #E548FF 100%)',
                   }}
                 >
                   <Play className="w-4 md:w-5 h-4 md:h-5" />
-                  Continuar Curso
+                  {completedCount === 0 ? 'Começar Curso' : 'Continuar Curso'}
                 </button>
               </Link>
             </div>
@@ -263,7 +345,7 @@ export default function CoursePage() {
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl md:rounded-2xl p-4 md:p-6">
               <h3 className="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6">Conteúdo do Curso</h3>
               <div className="space-y-3 md:space-y-4">
-                {courseData.modules.map((module, moduleIndex) => (
+                {modulesWithStatus.map((module, moduleIndex) => (
                   <div key={moduleIndex} className="border border-white/10 rounded-xl overflow-hidden">
                     <button
                       onClick={() => toggleModule(moduleIndex)}
@@ -288,15 +370,22 @@ export default function CoursePage() {
                     {expandedModules.includes(moduleIndex) && (
                       <div className="bg-black/20 p-1 md:p-2">
                         {module.lessons.map((lesson) => (
-                          <Link key={lesson.id} href={`/lesson/${lesson.id}`}>
-                            <div className="flex items-center justify-between p-3 md:p-4 hover:bg-white/5 rounded-lg transition-all cursor-pointer group">
+                          <Link 
+                            key={lesson.id} 
+                            href={lesson.locked ? "#" : `/lesson/${lesson.id}`}
+                            onClick={(e) => lesson.locked && e.preventDefault()}
+                            className={lesson.locked ? "cursor-not-allowed" : "cursor-pointer"}
+                          >
+                            <div className={`flex items-center justify-between p-3 md:p-4 hover:bg-white/5 rounded-lg transition-all group ${lesson.locked ? 'opacity-40' : ''}`}>
                               <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
                                 {lesson.completed ? (
                                   <CheckCircle2 className="w-4 md:w-5 h-4 md:h-5 text-green-400 flex-shrink-0" />
+                                ) : lesson.locked ? (
+                                  <Lock className="w-4 md:w-5 h-4 md:h-5 text-white/20 flex-shrink-0" />
                                 ) : (
                                   <Circle className="w-4 md:w-5 h-4 md:h-5 text-white/40 group-hover:text-white/60 flex-shrink-0" />
                                 )}
-                                <span className={`${lesson.completed ? 'text-white/80' : 'text-white'} group-hover:text-white transition-all text-sm md:text-base truncate`}>
+                                <span className={`${lesson.completed ? 'text-white/80' : lesson.locked ? 'text-white/40' : 'text-white'} group-hover:text-white transition-all text-sm md:text-base truncate`}>
                                   {lesson.title}
                                 </span>
                               </div>
@@ -389,9 +478,67 @@ export default function CoursePage() {
                 </li>
               </ul>
             </div>
+
+            {/* Support Materials Card */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl md:rounded-2xl p-4 md:p-6">
+              <h3 className="text-base md:text-lg font-semibold text-white mb-3 md:mb-4 flex items-center gap-2">
+                <FileText className="w-4 md:w-5 h-4 md:h-5 text-[#63E3FF]" />
+                Materiais de Apoio
+              </h3>
+              <div className="space-y-3">
+                {materials.map((material, index) => (
+                  <div 
+                    key={index} 
+                    onClick={() => handleDownload(material.name)}
+                    className="bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 hover:bg-white/10 transition-all group cursor-pointer">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-br from-[#63E3FF] to-[#7A2CFF] flex items-center justify-center flex-shrink-0">
+                          <FileText className="w-4 md:w-5 h-4 md:h-5 text-white" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-white text-xs md:text-sm font-medium truncate">{material.name}</p>
+                          <p className="text-white/40 text-[10px] md:text-xs">{material.size}</p>
+                        </div>
+                      </div>
+                      <Download className="w-4 md:w-5 h-4 md:h-5 text-white/60 group-hover:text-[#63E3FF] transition-all flex-shrink-0 ml-2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </main>
+
+      {/* Floating Download Progress */}
+      {downloadingFile && (
+        <div className="fixed bottom-8 right-8 z-[200] w-72 bg-[#0B0B0F] border border-white/10 rounded-2xl p-4 shadow-2xl animate-in slide-in-from-right-4 duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-[#63E3FF]" />
+              <span className="text-white text-xs font-medium truncate max-w-[150px]">{downloadingFile.name}</span>
+            </div>
+            <span className="text-[#63E3FF] text-xs font-bold">{downloadingFile.progress}%</span>
+          </div>
+          <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-[#63E3FF] to-[#7A2CFF] transition-all duration-300"
+              style={{ width: `${downloadingFile.progress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className={`px-6 py-3 rounded-xl backdrop-blur-md border border-white/10 shadow-2xl flex items-center gap-3 ${toast.type === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-[#63E3FF]/20 text-[#63E3FF]'}`}>
+            {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
+            <span className="font-medium text-sm">{toast.message}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
