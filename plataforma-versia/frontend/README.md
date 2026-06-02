@@ -42,7 +42,7 @@ NEXT_PUBLIC_DEMO_LOGIN_ENABLED=true
 Framework Preset: Next.js
 Install Command: npm install
 Build Command: npm run build
-Output Directory: out
+Output Directory: deixe vazio
 ```
 
 Mais detalhes em `DEPLOY_FRONTEND_GRATIS.md`.
