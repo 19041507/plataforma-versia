@@ -42,7 +42,28 @@ Use o `Dockerfile` em `plataforma-versia/backend` (Runtime → Docker). O `entry
 
 O Render define automaticamente `RENDER_EXTERNAL_HOSTNAME` e `RENDER_EXTERNAL_URL` — o `settings.py` já os usa.
 
-**Supabase:** use connection string **Session** (porta 5432). Se usar pooler transaction (6543), o projeto já ajusta `DISABLE_SERVER_SIDE_CURSORS`.
+### Supabase — `DATABASE_URL` (importante)
+
+No Supabase: **Project Settings → Database → Connection string → URI** → modo **Session** (porta **5432**).
+
+Cole no Render **sem aspas**:
+
+```text
+postgresql://postgres.[PROJECT-REF]:[SENHA-URL-ENCODED]@aws-0-[regiao].pooler.supabase.com:5432/postgres?sslmode=require
+```
+
+| Erro no deploy | Causa comum |
+|----------------|-------------|
+| `PostgreSQL indisponível` em loop | `DATABASE_URL` ausente, errada, ou Supabase pausado |
+| `password authentication failed` | Senha errada ou não codificada na URL (`@` → `%40`) |
+| `timeout` | Firewall/região; teste a URI no [SQL Editor](https://supabase.com) do projeto |
+| `SSL` | Falta `?sslmode=require` |
+
+**Render Python (sem Docker):** o `entrypoint.sh` **não roda** — use **Pre-Deploy** para migrações (tabela acima).
+
+**Render Docker:** o `entrypoint.sh` espera o banco antes das migrações; os logs mostram o erro real de conexão após as tentativas.
+
+Para pular a espera (só se o banco já estiver up): `DB_WAIT_MAX_ATTEMPTS=5`.
 
 ---
 

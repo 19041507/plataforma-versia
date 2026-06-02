@@ -1,35 +1,20 @@
 #!/bin/bash
-# ============================================
-# Entrypoint do Backend — Versia
-# Roda migrações automaticamente antes de iniciar o Gunicorn.
-# ============================================
+# Entrypoint do Backend — Versia (Docker no Render)
 set -e
 
-echo "⏳ Aguardando PostgreSQL..."
-while ! python -c "
-import os, psycopg2
-db_url = os.getenv('DATABASE_URL')
-if db_url:
-    conn = psycopg2.connect(db_url)
-else:
-    conn = psycopg2.connect(
-        dbname=os.getenv('POSTGRES_DB'),
-        user=os.getenv('POSTGRES_USER'),
-        password=os.getenv('POSTGRES_PASSWORD'),
-        host=os.getenv('DB_HOST', 'postgres'),
-        port=os.getenv('DB_PORT', '5432'),
-    )
-conn.close()
-" 2>/dev/null; do
-    echo "  PostgreSQL indisponível — tentando novamente em 2s..."
-    sleep 2
-done
-echo "✅ PostgreSQL pronto!"
+echo "▶ Versia backend — entrypoint"
 
-echo "🔄 Rodando migrações (shared)..."
+if [ -z "${DATABASE_URL:-}" ]; then
+  echo "❌ DATABASE_URL não definida. Configure no Render (Environment)."
+  exit 1
+fi
+
+python scripts/wait_for_db.py
+
+echo "🔄 Migrações (shared)..."
 python manage.py migrate_schemas --shared --noinput
 
-echo "🔄 Rodando migrações (tenants)..."
+echo "🔄 Migrações (tenants)..."
 python manage.py migrate_schemas --noinput
 
 echo "📦 Coletando arquivos estáticos..."
