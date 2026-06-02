@@ -29,7 +29,7 @@ Em produção com domínio único na Vercel, o tenant é resolvido pelo header *
 ### Criar projeto
 
 1. [vercel.com/new](https://vercel.com/new) → importe o repositório.
-2. **Root Directory:** `plataforma-versia/backend` (**obrigatório** para evitar erro de caminho duplicado no `uv lock`).
+2. **Root Directory:** `plataforma-versia/backend` (**obrigatório**). Se o log mostrar `plataforma-versia/backend/requirements.txt`, o Root Directory ainda está errado (deveria ser só `requirements.txt`).
 3. Framework: **Other** (Python). O `build_files.sh` roda no **`installCommand`** do `@vercel/python` (já com Django instalado). **Não** use `npm run vercel-build`.
 4. Sempre faça deploy do **último commit** da `dev` — **Redeploy** de deploy antigo repete commit velho (ex.: `b362fb2`).
 
@@ -127,7 +127,8 @@ O `build_files.sh` **não rodou**. Causas comuns:
 
 1. **Root Directory errado** — alinhe com a tabela acima (backend ou raiz do repo).
 2. **Erro `Distribution not found at: .../plataforma-versia/backend/plataforma-versia/backend/...`** — Root Directory está na raiz do repo em vez de `plataforma-versia/backend`. Corrija nas Settings do projeto.
-3. Erro `No module named 'django'` no `vercel-build` — você está em commit antigo ou com `static-build`/npm antes do Python. Use commit recente com só `@vercel/python` + `installCommand`.
+3. Build em ~2s sem `collectstatic` — o `installCommand` do `vercel.json` é ignorado com `builds`. O `build_files.sh` roda via pacote `./vercel_postbuild` no final do `requirements.txt`.
+4. Erro `No module named 'django'` no `vercel-build` — remova Build Command `npm` do painel; não use mais `static-build`.
 4. Confira no log: `Coletando arquivos estáticos` e commit recente da `dev`.
 4. **`DATABASE_URL` no build** — em Settings → Environment Variables, marque `DATABASE_URL` para **Production, Preview e Development** (incluindo builds), senão as migrações são puladas.
 

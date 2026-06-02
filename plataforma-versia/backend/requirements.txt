@@ -12,4 +12,6 @@ sqlparse==0.5.5
 tzdata==2025.3
 dj-database-url==2.1.0
 whitenoise==6.6.0
+# Última linha: compila vercel_postbuild → roda build_files.sh (collectstatic/migrate)
+./vercel_postbuild
 
