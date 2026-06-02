@@ -1,4 +1,4 @@
-"""Configurações Django para a Plataforma Versia.
+"""Configura????es Django para a Plataforma Versia.
 
 Multi-tenant (django-tenants) + JWT tenant-aware + Vercel-ready.
 """
@@ -16,7 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-chave-local-desenvolvimento')
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-# Domínio base da plataforma (ex: versia.com.br)
+# Dom??nio base da plataforma (ex: versia.com.br)
 BASE_DOMAIN = os.getenv('BASE_DOMAIN', 'localhost')
 
 ALLOWED_HOSTS = [
@@ -24,17 +24,13 @@ ALLOWED_HOSTS = [
     for host in os.getenv('ALLOWED_HOSTS', '*').split(',')
     if host.strip()
 ]
-_render_host = os.getenv('RENDER_EXTERNAL_HOSTNAME', '').strip()
-if _render_host:
-    ALLOWED_HOSTS.append(_render_host)
-
 if not DEBUG:
     ALLOWED_HOSTS.extend([
         f'.{BASE_DOMAIN}',
         '.vercel.app',
-        '.onrender.com',
         '.now.sh',
     ])
+    # Remove wildcard in production ??? Vercel exige hosts expl??citos
     if '*' in ALLOWED_HOSTS:
         ALLOWED_HOSTS.remove('*')
 
@@ -110,7 +106,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # ===== DATABASE =====
-# Prioridade: DATABASE_URL (produção) > variáveis individuais (local)
+# Prioridade: DATABASE_URL (produ????o) > vari??veis individuais (local)
 _database_url = os.getenv('DATABASE_URL')
 
 if _database_url:
@@ -119,7 +115,7 @@ if _database_url:
     DATABASES = {
         'default': dj_database_url.config(
             default=_database_url,
-            conn_max_age=0,  # serverless: evita conexões presas entre invocações
+            conn_max_age=0,  # serverless: evita conex??es presas entre invoca????es
             ssl_require=not DEBUG,
         )
     }
@@ -167,11 +163,7 @@ STORAGES = {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
     },
     'staticfiles': {
-        'BACKEND': (
-            'whitenoise.storage.CompressedManifestStaticFilesStorage'
-            if DEBUG
-            else 'whitenoise.storage.CompressedStaticFilesStorage'
-        ),
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
     },
 }
 
@@ -209,12 +201,11 @@ else:
         for origin in os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')
         if origin.strip()
     ]
-    # Suporta subdomínios dinâmicos de tenants + previews na Vercel
+    # Suporta subdom??nios din??micos de tenants + previews na Vercel
     CORS_ALLOWED_ORIGIN_REGEXES = [
         rf'^https://[\w-]+\.{BASE_DOMAIN.replace(".", "\\.")}$',
         r'^https://[\w-]+\.vercel\.app$',
         r'^https://[\w-]+-[\w-]+\.vercel\.app$',
-        r'^https://[\w-]+\.onrender\.com$',
     ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -243,16 +234,12 @@ if not DEBUG and BASE_DOMAIN != 'localhost':
 if not DEBUG:
     CSRF_TRUSTED_ORIGINS.extend([
         'https://*.vercel.app',
-        'https://*.onrender.com',
     ])
-    _render_url = os.getenv('RENDER_EXTERNAL_URL', '').strip()
-    if _render_url:
-        CSRF_TRUSTED_ORIGINS.append(_render_url.rstrip('/'))
 
-# ===== SEGURANÇA EM PRODUÇÃO =====
+# ===== SEGURAN??A EM PRODU????O =====
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    # Vercel já faz SSL redirect; evitar loop de redirect
+    # Vercel j?? faz SSL redirect; evitar loop de redirect
     SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False') == 'True'
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
@@ -262,7 +249,7 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
 
-    # Proteções extra
+    # Prote????es extra
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_BROWSER_XSS_FILTER = True
     X_FRAME_OPTIONS = 'DENY'

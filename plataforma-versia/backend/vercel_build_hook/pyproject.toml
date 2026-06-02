@@ -1,0 +1,8 @@
+[project]
+name = "versia-vercel-build"
+version = "0.0.0"
+description = "Dispara build_files.sh durante o pip/uv install na Vercel"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"

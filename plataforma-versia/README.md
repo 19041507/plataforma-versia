@@ -12,9 +12,18 @@ Cada empresa (tenant) possui seu próprio **schema** no PostgreSQL — os dados 
 - **Django 6** + **Django REST Framework**
 - **django-tenants** (multi-tenancy por schema)
 - **SimpleJWT** (autenticação via JWT)
-- **PostgreSQL 16**
+- **PostgreSQL 16** (Supabase em produção)
 - **django-cors-headers**
-- **Docker** (para o banco)
+- **Gunicorn** (produção no Render)
+- **Docker** (opcional — deploy local ou Render Docker)
+
+## 🚀 Deploy
+
+| Componente | Plataforma | Guia |
+|------------|------------|------|
+| Backend API | [Render](https://render.com) | [DEPLOY_RENDER.md](./DEPLOY_RENDER.md) |
+| Frontend | [Vercel](https://vercel.com) | `plataforma-versia/frontend` (Root Directory) |
+| Banco | [Supabase](https://supabase.com) | `DATABASE_URL` no Render |
 
 ---
 

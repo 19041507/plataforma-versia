@@ -33,7 +33,40 @@ class HeaderOrDomainTenantMiddleware(TenantMainMiddleware):
         if tenant_header:
             return self._resolve_by_header(request, tenant_header)
 
+        hostname = request.get_host().split(':')[0].lower()
+        if self._is_single_domain_deploy(hostname):
+            return self._set_public_schema(request)
+
         return super().process_request(request)
+
+    def _is_single_domain_deploy(self, hostname: str) -> bool:
+        """Domínio único (Render/Vercel) sem subdomínio de tenant → schema público."""
+        single_domain_suffixes = (
+            '.onrender.com',
+            '.vercel.app',
+            '.now.sh',
+        )
+        if any(hostname.endswith(suffix) for suffix in single_domain_suffixes):
+            return True
+        return hostname in ('localhost', '127.0.0.1')
+
+    def _set_public_schema(self, request):
+        """Ativa o schema public (rotas de admin, /api/empresas, /health)."""
+        tenant_model = get_tenant_model()
+        public_schema = get_public_schema_name()
+        try:
+            tenant = tenant_model.objects.get(schema_name=public_schema)
+        except tenant_model.DoesNotExist:
+            logger.error('Schema public nao encontrado no banco.')
+            return JsonResponse(
+                {'erro': 'Schema public não configurado. Rode as migrações.'},
+                status=503,
+            )
+
+        request.tenant = tenant
+        connection.set_tenant(tenant)
+        request.urlconf = settings.PUBLIC_SCHEMA_URLCONF
+        return None
 
     def _resolve_by_header(self, request, schema_name):
         """Resolve tenant pelo header X-Tenant."""

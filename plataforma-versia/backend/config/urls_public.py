@@ -10,11 +10,16 @@ def inicio_publico(request):
     return JsonResponse({
         'servico': 'Versia API',
         'schema': 'público',
-        'mensagem': 'Rota pública — use o domínio do tenant para acessar a aplicação.'
+        'mensagem': 'Rota pública — envie o header X-Tenant para rotas de tenant.',
     })
 
 
+def health(request):
+    return JsonResponse({'status': 'ok'})
+
+
 urlpatterns = [
+    path('health/', health),
     path('admin/', admin.site.urls),
     path('', inicio_publico),
     path('api/', include('empresas.urls')),
