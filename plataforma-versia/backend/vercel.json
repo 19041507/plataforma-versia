@@ -3,12 +3,6 @@
   "installCommand": "pip install -r requirements.txt",
   "buildCommand": "bash build_files.sh",
   "framework": null,
-  "functions": {
-    "api/**/*.py": {
-      "runtime": "python3.12",
-      "maxDuration": 30
-    }
-  },
   "rewrites": [
     {
       "source": "/static/(.*)",

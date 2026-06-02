@@ -3,12 +3,6 @@
   "installCommand": "pip install -r plataforma-versia/backend/requirements.txt",
   "buildCommand": "cd plataforma-versia/backend && bash build_files.sh",
   "framework": null,
-  "functions": {
-    "plataforma-versia/backend/api/**/*.py": {
-      "runtime": "python3.12",
-      "maxDuration": 30
-    }
-  },
   "rewrites": [
     {
       "source": "/static/(.*)",
