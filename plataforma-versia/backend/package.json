@@ -2,6 +2,7 @@
   "name": "versia-backend",
   "private": true,
   "scripts": {
-    "vercel-build": "bash build_files.sh"
+    "vercel-build": "bash build_files.sh",
+    "postinstall": "bash build_files.sh"
   }
 }

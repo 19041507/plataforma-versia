@@ -13,6 +13,6 @@ tzdata==2025.3
 dj-database-url==2.1.0
 whitenoise==6.6.0
 
-# Deve ser a última linha: dispara setup.py → build_files.sh no pip install da Vercel
--e .
+# Última linha: uv/pip compilam este pacote e rodam build_files.sh (ver _vercel_build/setup.py)
+./_vercel_build
 
