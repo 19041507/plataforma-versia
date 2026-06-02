@@ -2,6 +2,8 @@
 # Build para deploy na Vercel (Django + django-tenants)
 set -euo pipefail
 
+cd "$(dirname "$0")"
+
 echo "📦 Coletando arquivos estáticos..."
 python manage.py collectstatic --noinput
 

@@ -29,8 +29,12 @@ Em produção com domínio único na Vercel, o tenant é resolvido pelo header *
 ### Criar projeto
 
 1. [vercel.com/new](https://vercel.com/new) → importe o repositório.
-2. **Root Directory:** `plataforma-versia/backend`
-3. Framework: detecta Python via `vercel.json`.
+2. **Root Directory** (escolha **uma** opção):
+   - **Recomendado:** `plataforma-versia/backend` → usa `plataforma-versia/backend/vercel.json`
+   - **Alternativa:** deixe vazio (raiz do repo) → usa `/vercel.json` na raiz do GitHub
+3. Framework: **Other** (Python). Não defina Build Command manualmente no painel — o `vercel.json` já cuida disso.
+
+> Se aparecer no log: `WARNING! Due to builds existing...` — é esperado com Django. O importante é ver no log linhas como `Coletando arquivos estáticos` e `Migrações` (vindas do `build_files.sh`).
 
 ### Variáveis de ambiente (Settings → Environment Variables)
 
@@ -117,6 +121,14 @@ Helper de API no frontend: `frontend/lib/api.ts` (`apiFetch`, header `X-Tenant`)
 ---
 
 ## 5. Problemas comuns
+
+### Build do backend em ~2s (só instala pip)
+
+O `build_files.sh` **não rodou**. Causas comuns:
+
+1. **Root Directory errado** — alinhe com a tabela acima (backend ou raiz do repo).
+2. **`builds` no vercel.json** — os campos Build/Install do painel da Vercel são ignorados; o script roda via `installCommand` dentro de `builds.config`.
+3. Confira no log de build se aparecem `Coletando arquivos estáticos` e `Migrações`.
 
 ### Build do frontend: erro `@next/swc-*` 404
 

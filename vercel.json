@@ -3,23 +3,23 @@
   "version": 2,
   "builds": [
     {
-      "src": "config/wsgi.py",
+      "src": "plataforma-versia/backend/config/wsgi.py",
       "use": "@vercel/python",
       "config": {
         "maxLambdaSize": "50mb",
         "runtime": "python3.12",
-        "installCommand": "pip install -r requirements.txt && bash build_files.sh"
+        "installCommand": "pip install -r plataforma-versia/backend/requirements.txt && cd plataforma-versia/backend && bash build_files.sh"
       }
     }
   ],
   "routes": [
     {
       "src": "/static/(.*)",
-      "dest": "/staticfiles/$1"
+      "dest": "/plataforma-versia/backend/staticfiles/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "config/wsgi.py"
+      "dest": "plataforma-versia/backend/config/wsgi.py"
     }
   ]
 }
