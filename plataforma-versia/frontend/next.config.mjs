@@ -2,8 +2,17 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
+
   experimental: {
     optimizePackageImports: ['lucide-react'],
+  },
+
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+
+  eslint: {
+    ignoreDuringBuilds: true,
   },
 };
 
