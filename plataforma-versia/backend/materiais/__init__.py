@@ -1,0 +1,1 @@
+"""Materiais app initialization."""

@@ -1,47 +1,70 @@
+"""Middleware de resolução de tenant para a Plataforma Versia.
+
+Suporta duas estratégias de resolução:
+1. Header HTTP `X-Tenant` — usado em deploy de domínio único (Vercel/Railway)
+2. Subdomínio/hostname — fallback clássico do django-tenants (dev local)
+"""
+import logging
+
+from django.conf import settings
+from django.db import connection
+from django.http import JsonResponse
 from django_tenants.middleware.main import TenantMainMiddleware
 from django_tenants.utils import get_tenant_model, get_public_schema_name
-from django.conf import settings
-import logging
 
 logger = logging.getLogger(__name__)
 
+
 class HeaderOrDomainTenantMiddleware(TenantMainMiddleware):
+    """Middleware híbrido para resolução de tenant.
+
+    Prioridade:
+    1. Header `X-Tenant` (schema_name) → deploy em domínio único (Vercel)
+    2. Hostname da requisição → django-tenants padrão (dev local com subdomínios)
+
+    Se o header `X-Tenant` contiver um schema inexistente, retorna HTTP 400
+    em vez de cair para o fallback por domínio, evitando comportamento
+    inesperado em produção.
     """
-    Middleware híbrido que tenta resolver o tenant de duas formas:
-    1. Pelo header HTTP 'X-Tenant' (útil para deploy em domínio único como Railway/Vercel)
-    2. Pelo subdomínio/domínio padrão (fallback clássico de django-tenants para desenvolvimento local)
-    """
+
     def process_request(self, request):
-        # 1. Tenta obter o schema_name do header X-Tenant
-        # Nota: request.headers está disponível no Django 2.2+
-        tenant_header = request.headers.get('X-Tenant') or request.META.get('HTTP_X_TENANT')
-        
+        tenant_header = (request.headers.get('X-Tenant') or '').strip().lower()
+
         if tenant_header:
-            tenant_header = tenant_header.strip().lower()
-            tenant_model = get_tenant_model()
-            try:
-                # Busca o tenant pelo schema_name
-                tenant = tenant_model.objects.get(schema_name=tenant_header)
-                
-                # Configura o tenant no request e na conexão ativa do banco
-                request.tenant = tenant
-                connection = self.get_connection()
-                connection.set_tenant(request.tenant)
-                
-                # Define a URLconf correta
-                if request.tenant.schema_name == get_public_schema_name():
-                    request.urlconf = settings.PUBLIC_SCHEMA_URLCONF
-                else:
-                    request.urlconf = settings.ROOT_URLCONF
-                
-                logger.info(f"Tenant resolvido via Header 'X-Tenant': {tenant.schema_name}")
-                return None  # Continua para o próximo middleware
-                
-            except tenant_model.DoesNotExist:
-                # Se o schema fornecido no header não existir, loga o aviso e deixa
-                # o processo cair para a busca clássica baseada em domínio.
-                logger.warning(f"Tenant especificado no header X-Tenant '{tenant_header}' não existe. Caindo para fallback por domínio.")
-                pass
-        
-        # 2. Se não houver header ou falhar, usa a busca padrão do django-tenants (por hostname)
+            return self._resolve_by_header(request, tenant_header)
+
         return super().process_request(request)
+
+    def _resolve_by_header(self, request, schema_name):
+        """Resolve tenant pelo header X-Tenant."""
+        tenant_model = get_tenant_model()
+
+        try:
+            tenant = tenant_model.objects.get(schema_name=schema_name)
+        except tenant_model.DoesNotExist:
+            logger.warning(
+                'Tenant "%s" especificado no header X-Tenant nao existe.',
+                schema_name,
+            )
+            return JsonResponse(
+                {'erro': f'Tenant "{schema_name}" não encontrado.'},
+                status=400,
+            )
+
+        if hasattr(tenant, 'ativo') and not tenant.ativo:
+            logger.warning('Tentativa de acesso a tenant inativo: %s', schema_name)
+            return JsonResponse(
+                {'erro': 'Este tenant está desativado.'},
+                status=403,
+            )
+
+        request.tenant = tenant
+        connection.set_tenant(tenant)
+
+        if tenant.schema_name == get_public_schema_name():
+            request.urlconf = settings.PUBLIC_SCHEMA_URLCONF
+        else:
+            request.urlconf = settings.ROOT_URLCONF
+
+        logger.debug('Tenant resolvido via header X-Tenant: %s', tenant.schema_name)
+        return None

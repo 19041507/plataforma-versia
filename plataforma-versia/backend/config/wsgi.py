@@ -1,12 +1,9 @@
 """
-WSGI config for config project.
+WSGI config for Plataforma Versia.
 
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/6.0/howto/deployment/wsgi/
+Expõe o callable WSGI como `application` (padrão Django)
+e como `app` (alias exigido pelo Vercel Python runtime).
 """
-
 import os
 
 from django.core.wsgi import get_wsgi_application
@@ -14,3 +11,6 @@ from django.core.wsgi import get_wsgi_application
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
 application = get_wsgi_application()
+
+# Vercel Python runtime procura por `app`
+app = application

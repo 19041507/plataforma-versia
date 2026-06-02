@@ -23,7 +23,7 @@ class VisaoDetalheCurso(APIView):
     def get(self, requisicao, pk):
         try:
             curso = Curso.objects.get(pk=pk)
-            serializador = SerializadorCurso(curso)
+            serializador = SerializadorCurso(curso, context={'request': requisicao})
             return Response(serializador.data)
         except Curso.DoesNotExist:
             return Response({'erro': 'Curso não encontrado'}, status=404)
