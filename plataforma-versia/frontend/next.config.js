@@ -1,7 +1,14 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: 'standalone',
+
+  // Evita que o Next use um package-lock.json fora deste projeto (ex.: pasta do usuário)
+  outputFileTracingRoot: path.join(__dirname),
 
   experimental: {
     optimizePackageImports: ['lucide-react'],

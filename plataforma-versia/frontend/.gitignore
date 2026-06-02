@@ -5,6 +5,7 @@ node_modules
 # Build do Next.js
 .next/
 out/
+tsconfig.tsbuildinfo
 
 # IDEs e Sistema
 .vscode/

@@ -28,7 +28,11 @@ if not DEBUG:
     ALLOWED_HOSTS.extend([
         f'.{BASE_DOMAIN}',
         '.vercel.app',
+        '.now.sh',
     ])
+    # Remove wildcard in production — Vercel exige hosts explícitos
+    if '*' in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.remove('*')
 
 # ===== DJANGO TENANTS =====
 SHARED_APPS = [
@@ -107,15 +111,19 @@ _database_url = os.getenv('DATABASE_URL')
 
 if _database_url:
     import dj_database_url
+
     DATABASES = {
         'default': dj_database_url.config(
             default=_database_url,
-            conn_max_age=600,
+            conn_max_age=0,  # serverless: evita conexões presas entre invocações
             ssl_require=not DEBUG,
         )
     }
     # Preservar engine especial do django-tenants
     DATABASES['default']['ENGINE'] = 'django_tenants.postgresql_backend'
+    # Supabase pooler (PgBouncer) em modo transaction exige desligar server-side cursors
+    if 'pooler.supabase.com' in _database_url or 'pgbouncer=true' in _database_url:
+        DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
 else:
     DATABASES = {
         'default': {
@@ -193,9 +201,11 @@ else:
         for origin in os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')
         if origin.strip()
     ]
-    # Suporta subdomínios dinâmicos de tenants automaticamente
+    # Suporta subdomínios dinâmicos de tenants + previews na Vercel
     CORS_ALLOWED_ORIGIN_REGEXES = [
         rf'^https://[\w-]+\.{BASE_DOMAIN.replace(".", "\\.")}$',
+        r'^https://[\w-]+\.vercel\.app$',
+        r'^https://[\w-]+-[\w-]+\.vercel\.app$',
     ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -220,6 +230,11 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 if not DEBUG and BASE_DOMAIN != 'localhost':
     CSRF_TRUSTED_ORIGINS.append(f'https://*.{BASE_DOMAIN}')
+
+if not DEBUG:
+    CSRF_TRUSTED_ORIGINS.extend([
+        'https://*.vercel.app',
+    ])
 
 # ===== SEGURANÇA EM PRODUÇÃO =====
 if not DEBUG:
