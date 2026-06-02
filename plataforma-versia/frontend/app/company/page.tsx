@@ -129,14 +129,14 @@ export default function CompanyPage() {
       )}
 
       <main className="lg:ml-64">
-        <header className="sticky top-0 z-40 bg-black/40 backdrop-blur-xl border-b border-white/5 px-4 md:px-8 py-4 relative">
+        <header className="sticky top-0 z-40 bg-black/40 backdrop-blur-xl border-b border-white/5 pl-20 pr-4 md:px-8 py-4 relative">
           <div className="absolute left-0 right-0 bottom-0 h-8 bg-gradient-to-b from-transparent to-[#050505]/30 pointer-events-none"></div>
           <div className="flex items-center justify-between gap-4">
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold text-white">Área da Empresa</h1>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white leading-tight">Área da Empresa</h1>
               <p className="text-white/60 text-xs md:text-sm mt-1">Painel exclusivo da {user.company ?? 'empresa'} para acompanhar equipes, trilhas e certificados</p>
             </div>
-            <div className="relative">
+            <div className="relative flex-shrink-0">
               <button
                 onClick={toggleNotifications}
                 className={`w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all ${notificationsEnabled ? 'text-[#63E3FF] hover:bg-[#63E3FF]/10' : 'text-white/40 hover:text-white/60'}`}

@@ -84,16 +84,16 @@ export default function SettingsPage() {
       )}
 
       <main className="lg:ml-64">
-        <header className="sticky top-0 z-40 bg-black/40 backdrop-blur-xl border-b border-white/5 px-4 md:px-8 py-4 relative">
+        <header className="sticky top-0 z-40 bg-black/40 backdrop-blur-xl border-b border-white/5 pl-20 pr-4 md:px-8 py-4 relative">
           <div className="absolute left-0 right-0 bottom-0 h-8 bg-gradient-to-b from-transparent to-[#050505]/30 pointer-events-none"></div>
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold text-white">Configurações</h1>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white leading-tight">Configurações</h1>
               <p className="text-white/60 text-xs md:text-sm mt-1">Ajuste preferências de aprendizado, notificações e segurança</p>
             </div>
             <button
               onClick={saveSettings}
-              className="px-4 md:px-6 py-3 rounded-xl font-semibold text-white flex items-center gap-2 hover:scale-105 transition-all"
+              className="px-3 md:px-6 py-3 rounded-xl font-semibold text-white flex items-center gap-2 hover:scale-105 transition-all flex-shrink-0"
               style={{ background: 'linear-gradient(135deg, #63E3FF 0%, #2FA7FF 30%, #7A2CFF 65%, #E548FF 100%)' }}
             >
               <Save className="w-4 h-4" />

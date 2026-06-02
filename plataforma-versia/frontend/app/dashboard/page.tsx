@@ -192,7 +192,7 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="lg:ml-64">
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-black/40 backdrop-blur-xl border-b border-white/5 px-4 md:px-8 py-4 relative">
+        <header className="sticky top-0 z-40 bg-black/40 backdrop-blur-xl border-b border-white/5 pl-20 pr-4 md:px-8 py-4 relative">
           {/* Gradient transition to content below */}
           <div className="absolute left-0 right-0 bottom-0 h-8 bg-gradient-to-b from-transparent to-[#050505]/30 pointer-events-none"></div>
           
