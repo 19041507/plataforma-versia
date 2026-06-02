@@ -193,12 +193,12 @@ export default function CertificatePage() {
           {/* Gradient transition to content below */}
           <div className="absolute left-0 right-0 bottom-0 h-8 bg-gradient-to-b from-transparent to-[#050505]/30 pointer-events-none"></div>
           
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
               <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white leading-tight">Conquistas e Certificados</h1>
               <p className="text-white/60 text-xs md:text-sm mt-1">Acompanhe seu progresso e celebre suas conquistas</p>
             </div>
-            <div className="flex items-center gap-4 flex-shrink-0">
+            <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
               <div className="relative">
                 <button 
                   onClick={toggleNotifications}

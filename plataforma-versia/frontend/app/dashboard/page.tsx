@@ -197,7 +197,7 @@ export default function DashboardPage() {
           <div className="absolute left-0 right-0 bottom-0 h-8 bg-gradient-to-b from-transparent to-[#050505]/30 pointer-events-none"></div>
           
           <div className="flex items-center justify-between gap-4">
-            <div className="flex-1 max-w-xl">
+            <div className="flex-1 min-w-0 max-w-xl">
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
                 <input
@@ -207,7 +207,7 @@ export default function DashboardPage() {
                 />
               </div>
             </div>
-            <div className="flex items-center gap-2 md:gap-4">
+            <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
               <div className="relative">
                 <button 
                   onClick={toggleNotifications}

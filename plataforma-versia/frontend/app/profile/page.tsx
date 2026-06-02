@@ -144,7 +144,7 @@ export default function ProfilePage() {
         <header className="sticky top-0 z-40 bg-black/40 backdrop-blur-xl border-b border-white/5 pl-20 pr-4 md:px-8 py-4 relative">
           <div className="absolute left-0 right-0 bottom-0 h-8 bg-gradient-to-b from-transparent to-[#050505]/30 pointer-events-none"></div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
               <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white leading-tight">Meu Perfil</h1>
               <p className="text-white/60 text-xs md:text-sm mt-1">Gerencie suas informações e acompanhe seu progresso</p>
