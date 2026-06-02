@@ -1,24 +1,22 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "version": 2,
-  "builds": [
-    {
-      "src": "plataforma-versia/backend/config/wsgi.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "50mb",
-        "runtime": "python3.12"
-      }
+  "installCommand": "pip install -r plataforma-versia/backend/requirements.txt",
+  "buildCommand": "cd plataforma-versia/backend && bash build_files.sh",
+  "framework": null,
+  "functions": {
+    "plataforma-versia/backend/api/**/*.py": {
+      "runtime": "python3.12",
+      "maxDuration": 30
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/static/(.*)",
-      "dest": "/plataforma-versia/backend/staticfiles/$1"
+      "source": "/static/(.*)",
+      "destination": "/plataforma-versia/backend/staticfiles/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "plataforma-versia/backend/config/wsgi.py"
+      "source": "/(.*)",
+      "destination": "/plataforma-versia/backend/api/index"
     }
   ]
 }
