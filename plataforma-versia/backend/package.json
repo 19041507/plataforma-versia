@@ -1,5 +1,0 @@
-{
-  "name": "versia-backend",
-  "private": true,
-  "description": "Build Django roda via installCommand no vercel.json (@vercel/python), não via npm."
-}
