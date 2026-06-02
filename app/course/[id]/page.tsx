@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { getCourseById } from "@/lib/courseCatalog";
 import { VersiaLogo } from "@/components/VersiaLogo";
 import { UserProfileMini } from "@/components/UserProfileMini";
 import { LogoutButton } from "@/components/LogoutButton";
@@ -13,6 +14,7 @@ import {
   Search,
   Bell,
   User,
+  Building2,
   Clock,
   Play,
   CheckCircle2,
@@ -40,11 +42,15 @@ export default function CoursePage() {
   const [downloadingFile, setDownloadingFile] = useState<{ name: string, progress: number } | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [notificationTooltip, setNotificationTooltip] = useState("");
+  const courseId = Array.isArray(id) ? id[0] : String(id ?? '1');
+  const courseData = getCourseById(courseId) ?? getCourseById(1)!;
+  const progressKey = `versia_progress_${courseData.id}`;
 
   useEffect(() => {
-    const saved = localStorage.getItem('versia_progress_1');
+    const saved = localStorage.getItem(progressKey);
     if (saved) setCompletedIds(JSON.parse(saved));
-  }, []);
+    else setCompletedIds(courseData.modules.flatMap((module) => module.lessons).filter((lesson) => lesson.completed).map((lesson) => lesson.id));
+  }, [progressKey, courseData]);
 
   useEffect(() => {
     if (toast) {
@@ -59,64 +65,6 @@ export default function CoursePage() {
         ? prev.filter(i => i !== index)
         : [...prev, index]
     );
-  };
-
-  const courseData = {
-    title: "Liderança Estratégica 4.0",
-    instructor: {
-      name: "Ana Silva",
-      role: "Especialista em Liderança Corporativa",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&h=400&auto=format&fit=crop",
-    },
-    thumbnail: "https://images.unsplash.com/photo-1770240366266-57290c83cd5f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsZWFkZXJzaGlwJTIwZGV2ZWxvcG1lbnQlMjBtZW50b3IlMjBjb2FjaGluZ3xlbnwxfHx8fDE3NzQyMzQ0ODV8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    description: "Desenvolva habilidades de liderança moderna e estratégica para liderar equipes de alto desempenho na era digital. Este curso aborda técnicas avançadas de gestão, comunicação efetiva e tomada de decisão estratégica.",
-    progress: 0, // Será calculado dinamicamente
-    duration: "8h",
-    students: 1240,
-    rating: 4.8,
-    reviews: 342,
-    modules: [
-      {
-        title: "Fundamentos da Liderança Moderna",
-        duration: "2h",
-        lessons: [
-          { id: 1, title: "Introdução à Liderança 4.0", duration: "15min", completed: true },
-          { id: 2, title: "O Papel do Líder na Era Digital", duration: "20min", completed: true },
-          { id: 3, title: "Estilos de Liderança Contemporâneos", duration: "25min", completed: true },
-          { id: 4, title: "Autoconhecimento e Inteligência Emocional", duration: "30min", completed: false },
-        ],
-      },
-      {
-        title: "Comunicação e Influência",
-        duration: "2.5h",
-        lessons: [
-          { id: 5, title: "Comunicação Assertiva", duration: "20min", completed: false },
-          { id: 6, title: "Técnicas de Persuasão", duration: "25min", completed: false },
-          { id: 7, title: "Feedback Construtivo", duration: "30min", completed: false },
-          { id: 8, title: "Gestão de Conflitos", duration: "35min", completed: false },
-        ],
-      },
-      {
-        title: "Gestão de Equipes de Alto Desempenho",
-        duration: "2h",
-        lessons: [
-          { id: 9, title: "Construindo Equipes Eficazes", duration: "25min", completed: false },
-          { id: 10, title: "Motivação e Engajamento", duration: "30min", completed: false },
-          { id: 11, title: "Delegação Estratégica", duration: "20min", completed: false },
-          { id: 12, title: "Cultura Organizacional", duration: "25min", completed: false },
-        ],
-      },
-      {
-        title: "Tomada de Decisão Estratégica",
-        duration: "1.5h",
-        lessons: [
-          { id: 13, title: "Análise e Resolução de Problemas", duration: "30min", completed: false },
-          { id: 14, title: "Pensamento Estratégico", duration: "25min", completed: false },
-          { id: 15, title: "Gestão de Riscos", duration: "20min", completed: false },
-          { id: 16, title: "Projeto Final", duration: "15min", completed: false },
-        ],
-      },
-    ],
   };
 
   const materials = [
@@ -157,21 +105,23 @@ export default function CoursePage() {
 
   // Mapeia as aulas para incluir o estado real de conclusão e bloqueio
   const allLessons = courseData.modules.flatMap(m => m.lessons);
+  const lessonOrder = new Map(allLessons.map((lesson, index) => [lesson.id, index]));
   const totalLessons = allLessons.length;
-  const completedCount = completedIds.length;
+  const completedCount = completedIds.filter((completedId) => lessonOrder.has(completedId)).length;
   const dynamicProgress = Math.round((completedCount / totalLessons) * 100);
 
   const modulesWithStatus = courseData.modules.map(module => ({
     ...module,
     lessons: module.lessons.map(lesson => {
       const isCompleted = completedIds.includes(lesson.id);
-      // Uma aula está bloqueada se não for a primeira e a anterior não estiver concluída
-      const isLocked = lesson.id > 1 && !completedIds.includes(lesson.id - 1);
+      const order = lessonOrder.get(lesson.id) ?? 0;
+      const previousLesson = allLessons[order - 1];
+      const isLocked = order > 0 && previousLesson ? !completedIds.includes(previousLesson.id) : false;
       return { ...lesson, completed: isCompleted, locked: isLocked };
     })
   }));
 
-  const nextLessonId = allLessons.find(l => !completedIds.includes(l.id))?.id || 1;
+  const nextLessonId = allLessons.find(l => !completedIds.includes(l.id))?.id || allLessons[0]?.id || 1;
 
   return (
     <div className="min-h-screen bg-[#050505]">
@@ -217,10 +167,14 @@ export default function CoursePage() {
             <User className="w-5 h-5" />
             <span className="font-medium">Perfil</span>
           </Link>
-          <button className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all w-full">
+          <Link href="/company" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
+            <Building2 className="w-5 h-5" />
+            <span className="font-medium">Área da Empresa</span>
+          </Link>
+          <Link href="/settings" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
             <Settings className="w-5 h-5" />
             <span className="font-medium">Configurações</span>
-          </button>
+          </Link>
         </nav>
 
         <div className="border-t border-white/5 pt-4">

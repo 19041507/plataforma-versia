@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Versia — Plataforma de Treinamento Corporativo',
   description:
     'Plataforma premium de treinamento corporativo com experiência imersiva, ' +
-    'certificados digitais e assinatura Premium por R$ 24,90/mês.',
+    'certificados digitais e planos Premium a partir de R$ 14,90/mês.',
 };
 
 export default function RootLayout({

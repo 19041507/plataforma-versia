@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { getCourseByLessonId, getFlatLessons } from "@/lib/courseCatalog";
 import { UserProfileMini } from "@/components/UserProfileMini";
 import { LogoutButton } from "@/components/LogoutButton";
 import { 
@@ -43,6 +44,8 @@ export default function LessonPage() {
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'info' } | null>(null);
   const [downloadingFile, setDownloadingFile] = useState<{ name: string, progress: number } | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [videoReady, setVideoReady] = useState(false);
+  const [videoFailed, setVideoFailed] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
@@ -50,6 +53,9 @@ export default function LessonPage() {
   const progress = totalTime ? (currentTime / totalTime) * 100 : 0;
 
   const lessonId = Number(id);
+  const courseData = getCourseByLessonId(lessonId) ?? getCourseByLessonId(1)!;
+  const progressKey = `versia_progress_${courseData.id}`;
+  const flatCourseLessons = useMemo(() => getFlatLessons(courseData), [courseData]);
 
   // Auto-hide toast
   useEffect(() => {
@@ -69,11 +75,16 @@ export default function LessonPage() {
   };
 
   useEffect(() => {
-    const saved = localStorage.getItem('versia_progress_1');
+    const saved = localStorage.getItem(progressKey);
     if (saved) setCompletedIds(JSON.parse(saved));
-  }, []);
+    else setCompletedIds(flatCourseLessons.filter((lesson) => lesson.completed).map((lesson) => lesson.id));
+  }, [progressKey, flatCourseLessons]);
 
   useEffect(() => {
+    setVideoReady(false);
+    setVideoFailed(false);
+    setIsPlaying(false);
+    setCurrentTime(0);
     const savedTime = localStorage.getItem(`versia_lesson_time_${lessonId}`);
     if (savedTime && parseFloat(savedTime) > 5) {
       setResumeTime(parseFloat(savedTime));
@@ -91,7 +102,7 @@ export default function LessonPage() {
     } else if (!isCompleted) {
       const newCompleted = [...completedIds, targetId];
       setCompletedIds(newCompleted);
-      localStorage.setItem('versia_progress_1', JSON.stringify(newCompleted));
+      localStorage.setItem(progressKey, JSON.stringify(newCompleted));
       localStorage.removeItem(`versia_lesson_time_${targetId}`);
       const isLast = targetId === lessons[lessons.length - 1].id;
       if (isLast) setShowCelebration(true);
@@ -101,25 +112,22 @@ export default function LessonPage() {
   const confirmUnmark = () => {
     const newCompleted = completedIds.filter(id => id !== lessonId);
     setCompletedIds(newCompleted);
-    localStorage.setItem('versia_progress_1', JSON.stringify(newCompleted));
+    localStorage.setItem(progressKey, JSON.stringify(newCompleted));
     setShowUnmarkModal(false);
   };
 
-  const lessons = useMemo(() => [
-    { id: 1, title: "Introdução à Liderança 4.0", duration: "10:53", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", poster: "https://peach.blender.org/wp-content/uploads/title_an_full.jpg" },
-    { id: 2, title: "O Papel do Líder na Era Digital", duration: "12:12", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4", poster: "https://mango.blender.org/wp-content/uploads/2012/05/01_vfx_preview_01.png" },
-    { id: 3, title: "Estilos de Liderança Contemporâneos", duration: "14:48", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4", poster: "https://durian.blender.org/wp-content/uploads/2010/05/sintel_poster_01.jpg" },
-    { id: 4, title: "Autoconhecimento e Inteligência Emocional", duration: "09:56", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", poster: "https://peach.blender.org/wp-content/uploads/bbb-splash.png" },
-    { id: 5, title: "Comunicação Assertiva", duration: "00:15", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", poster: "https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=1080" },
-    { id: 6, title: "Técnicas de Persuasão", duration: "25:00" },
-  ].map(l => ({
-    ...l,
-    completed: completedIds.includes(l.id),
-    current: l.id === lessonId,
-    locked: l.id > 1 && !completedIds.includes(l.id - 1)
-  })), [completedIds, lessonId]);
+  const lessons = useMemo(() => flatCourseLessons.map((lesson, index) => {
+    const previousLesson = flatCourseLessons[index - 1];
+    return {
+      ...lesson,
+      completed: completedIds.includes(lesson.id),
+      current: lesson.id === lessonId,
+      locked: index > 0 && previousLesson ? !completedIds.includes(previousLesson.id) : false,
+    };
+  }), [completedIds, flatCourseLessons, lessonId]);
 
   const currentLesson = lessons.find((l) => l.id === lessonId) || lessons[0];
+  const currentModule = courseData.modules.find((module) => module.lessons.some((lesson) => lesson.id === currentLesson.id));
   const isLocked = currentLesson.locked;
 
   const currentIndex = lessons.findIndex(l => l.id === lessonId);
@@ -259,16 +267,16 @@ export default function LessonPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <div className="min-h-screen bg-[#050505] flex flex-col">
       {/* Top Bar */}
       <header className="bg-black/80 backdrop-blur-xl border-b border-white/5 px-4 md:px-6 py-3 flex items-center justify-between z-50">
         <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
-          <Link href="/course/1" className="text-white/60 hover:text-white transition-all flex-shrink-0">
+          <Link href={`/course/${courseData.id}`} className="text-white/60 hover:text-white transition-all flex-shrink-0">
             <X className="w-5 md:w-6 h-5 md:h-6" />
           </Link>
           <div className="min-w-0">
-            <h1 className="text-white font-semibold text-sm md:text-lg truncate">Autoconhecimento e Inteligência Emocional</h1>
-            <p className="text-white/60 text-xs md:text-sm truncate">Liderança Estratégica 4.0 • Módulo 1</p>
+            <h1 className="text-white font-semibold text-sm md:text-lg truncate">{currentLesson.title}</h1>
+            <p className="text-white/60 text-xs md:text-sm truncate">{courseData.title} • {currentModule?.title ?? "Módulo"}</p>
           </div>
         </div>
         <div className="flex items-center gap-2 md:gap-4">
@@ -287,14 +295,20 @@ export default function LessonPage() {
 
       <div className="flex-1 flex overflow-hidden relative">
         {/* Main Video Area */}
-        <div className="flex-1 flex flex-col bg-black">
+        <div className="flex-1 flex flex-col bg-[#050505]">
           {/* Video Player */}
           <div className="flex-1 flex items-center justify-center relative group">
             {/* Video Thumbnail/Player */}
             <div 
               ref={containerRef}
-              className="relative w-full h-full max-h-[calc(100vh-200px)] flex items-center justify-center bg-gradient-to-br from-[#050505] to-[#0a0a0a]"
+              className="relative w-full h-full max-h-[calc(100vh-200px)] flex items-center justify-center bg-gradient-to-br from-[#08111f] via-[#11112b] to-[#050505] overflow-hidden"
             >
+              <img
+                src={currentLesson.poster || courseData.thumbnail}
+                alt="Plano de fundo da aula"
+                className="absolute inset-0 w-full h-full object-cover opacity-55 blur-[2px] scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-black/45 via-[#11112b]/35 to-[#7A2CFF]/25"></div>
               {isLocked ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-10 p-6 text-center">
                   <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6 border border-white/10">
@@ -303,38 +317,57 @@ export default function LessonPage() {
                   <h2 className="text-2xl font-bold text-white mb-2">Aula Bloqueada</h2>
                   <p className="text-white/60 max-w-sm">Você precisa concluir a aula anterior para liberar este conteúdo.</p>
                 </div>
-              ) : currentLesson.videoUrl ? (
+              ) : currentLesson.videoUrl && !videoFailed ? (
                   <video
                     key={currentLesson.videoUrl}
                     ref={videoRef}
-                    poster={currentLesson.poster}
-                    className="w-full h-full max-w-full max-h-full object-contain"
+                    poster={currentLesson.poster || courseData.thumbnail}
+                    className={`relative z-[1] w-full h-full max-w-full max-h-full object-contain transition-opacity duration-500 ${videoReady && isPlaying ? 'opacity-100' : 'opacity-0'}`}
                     playsInline
+                    preload="metadata"
+                    onCanPlay={() => setVideoReady(true)}
+                    onError={() => {
+                      setVideoFailed(true);
+                      setIsPlaying(false);
+                    }}
                   >
                     <source src={currentLesson.videoUrl} type="video/mp4" />
                   </video>
                 ) : (
-                  <img 
-                    src={currentLesson.poster || "https://images.unsplash.com/photo-1770240366266-57290c83cd5f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"}
-                    alt="Video"
-                    className="max-w-full max-h-full object-contain"
-                  />
+                  <div className="relative z-[1] w-[min(92%,980px)] aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-white/5">
+                    <img 
+                      src={currentLesson.poster || courseData.thumbnail}
+                      alt="Aula demonstrativa"
+                      className="absolute inset-0 w-full h-full object-cover opacity-90"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-br from-black/35 via-[#11112b]/30 to-[#7A2CFF]/30"></div>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                      <Sparkles className="w-10 h-10 text-[#63E3FF] mb-3" />
+                      <p className="text-white/70 text-sm mb-2">Player visual da Versia</p>
+                      <h2 className="text-white text-2xl md:text-4xl font-bold max-w-2xl">{currentLesson.title}</h2>
+                    </div>
+                  </div>
                 )}
               
               {/* Play Button Overlay */}
-              {!isPlaying && !isLocked && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 gap-4">
+              {(!isPlaying || !videoReady || videoFailed) && !isLocked && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-black/10 via-transparent to-[#7A2CFF]/15 gap-4 p-6 text-center z-10">
                   <div className="flex flex-col items-center gap-6">
                     <button
                       onClick={() => {
                         setIsPlaying(true);
                         setResumeTime(null);
                       }}
-                      className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm border-2 border-white/20 flex items-center justify-center hover:scale-110 transition-all group"
+                      className="w-20 h-20 rounded-full bg-white/15 backdrop-blur-md border-2 border-white/30 flex items-center justify-center hover:scale-110 transition-all group shadow-2xl shadow-[#63E3FF]/20"
                     >
                       <Play className="w-10 h-10 text-white ml-1" />
                     </button>
                     
+                    <div>
+                      <h2 className="text-2xl md:text-4xl font-bold text-white mb-2 drop-shadow-xl">{currentLesson.title}</h2>
+                      <p className="text-white/70 text-sm md:text-base">{courseData.title}</p>
+                    </div>
+
                     {resumeTime !== null && (
                       <button
                         onClick={handleResume}
@@ -536,7 +569,7 @@ export default function LessonPage() {
 
                     {/* Lessons List */}
                     <div className="p-4">
-                      <h3 className="text-white font-semibold mb-4 px-2">Módulo 1: Fundamentos da Liderança Moderna</h3>
+                      <h3 className="text-white font-semibold mb-4 px-2">{currentModule?.title ?? courseData.title}</h3>
                       <div className="space-y-1">
                         {lessons.map((lesson) => (
                           <Link 
@@ -628,7 +661,7 @@ export default function LessonPage() {
               </div>
               
               <h2 className="text-3xl font-bold text-white mb-2">Curso Concluído!</h2>
-              <p className="text-white/60 mb-8">Parabéns! Você finalizou com sucesso a trilha de Liderança Estratégica 4.0.</p>
+              <p className="text-white/60 mb-8">Parabéns! Você finalizou com sucesso a trilha de {courseData.title}.</p>
               
               <Link href="/certificate">
                 <button className="w-full py-4 rounded-xl font-bold text-white shadow-lg hover:scale-105 transition-all bg-gradient-to-r from-[#63E3FF] via-[#2FA7FF] to-[#7A2CFF]">

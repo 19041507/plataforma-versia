@@ -4,6 +4,7 @@ import Link from "next/link";
 import { VersiaLogo } from "../../components/VersiaLogo";
 import { UserProfileMini } from "../../components/UserProfileMini";
 import { LogoutButton } from "../../components/LogoutButton";
+import { PaginationControls } from "@/components/PaginationControls";
 import { 
   Home, 
   BookOpen, 
@@ -13,6 +14,7 @@ import {
   Bell,
   BellOff, 
   User,
+  Building2,
   Clock,
   Filter,
   Grid3x3,
@@ -27,6 +29,7 @@ export default function CoursesPage() {
   const [activeCategory, setActiveCategory] = useState("Todos");
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [coursePage, setCoursePage] = useState(1);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [notificationTooltip, setNotificationTooltip] = useState<string | null>(null);
@@ -35,6 +38,10 @@ export default function CoursesPage() {
     const saved = localStorage.getItem('versia_notifications_enabled');
     if (saved !== null) setNotificationsEnabled(saved === 'true');
   }, []);
+
+  useEffect(() => {
+    setCoursePage(1);
+  }, [activeCategory, searchQuery, viewMode]);
 
   const toggleNotifications = () => {
     const newState = !notificationsEnabled;
@@ -149,6 +156,10 @@ export default function CoursesPage() {
     return matchesCategory && matchesSearch;
   });
 
+  const coursesPerPage = viewMode === "grid" ? 6 : 4;
+  const totalCoursePages = Math.max(1, Math.ceil(filteredCourses.length / coursesPerPage));
+  const paginatedCourses = filteredCourses.slice((coursePage - 1) * coursesPerPage, coursePage * coursesPerPage);
+
   // Função para destacar o termo pesquisado
   const highlightText = (text: string, highlight: string) => {
     if (!highlight.trim()) return text;
@@ -200,10 +211,14 @@ export default function CoursesPage() {
             <User className="w-5 h-5" />
             <span className="font-medium">Perfil</span>
           </Link>
-          <button className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all w-full">
+          <Link href="/company" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
+            <Building2 className="w-5 h-5" />
+            <span className="font-medium">Área da Empresa</span>
+          </Link>
+          <Link href="/settings" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
             <Settings className="w-5 h-5" />
             <span className="font-medium">Configurações</span>
-          </button>
+          </Link>
         </nav>
 
         <div className="border-t border-white/5 pt-4">
@@ -317,8 +332,9 @@ export default function CoursesPage() {
 
           {/* Courses Grid */}
           {filteredCourses.length > 0 ? (
+            <>
             <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" : "space-y-4"}>
-            {filteredCourses.map((course) => (
+            {paginatedCourses.map((course) => (
               <Link key={course.id} href={`/course/${course.id}`}>
                 {viewMode === "grid" ? (
                   <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:bg-white/10 transition-all group cursor-pointer">
@@ -420,6 +436,8 @@ export default function CoursesPage() {
               </Link>
             ))}
           </div>
+          <PaginationControls page={coursePage} totalPages={totalCoursePages} onPageChange={setCoursePage} label="Cursos" />
+            </>
           ) : (
             <div className="flex flex-col items-center justify-center py-16 md:py-24 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/5 flex items-center justify-center mb-4 md:mb-6 border border-white/10">

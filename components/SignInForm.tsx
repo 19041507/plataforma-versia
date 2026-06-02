@@ -2,7 +2,8 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link'; // Importação do Link adicionada aqui
+import Link from 'next/link';
+import { getClientUser } from '@/lib/clientUser';
 
 interface SignInFormProps {
   buttonClass?: string;
@@ -10,7 +11,6 @@ interface SignInFormProps {
 
 export function SignInForm({ buttonClass }: SignInFormProps) {
   const router = useRouter();
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -19,7 +19,8 @@ export function SignInForm({ buttonClass }: SignInFormProps) {
 
   useEffect(() => {
     if (typeof document !== 'undefined' && document.cookie.includes('versia_session=1')) {
-      router.replace('/dashboard');
+      const user = getClientUser();
+      router.replace(user.role === 'company' ? '/company' : '/dashboard');
     }
   }, [router]);
 
@@ -28,11 +29,6 @@ export function SignInForm({ buttonClass }: SignInFormProps) {
     setError(null);
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
-    if (!name.trim()) {
-      setError('Por favor, informe seu nome completo.');
-      return;
-    }
 
     if (!emailRegex.test(email)) {
       setError('Por favor, insira um e-mail corporativo válido.');
@@ -55,7 +51,7 @@ export function SignInForm({ buttonClass }: SignInFormProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
+        body: JSON.stringify({ email: email.trim(), password }),
       });
 
       const data = await response.json();
@@ -65,7 +61,7 @@ export function SignInForm({ buttonClass }: SignInFormProps) {
         return;
       }
 
-      router.push('/dashboard');
+      router.push(data?.redirectTo ?? '/dashboard');
     } catch (err) {
       setError('Erro ao conectar. Tente novamente.');
       setLoading(false);
@@ -74,20 +70,6 @@ export function SignInForm({ buttonClass }: SignInFormProps) {
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-white/80 mb-2">
-          Nome completo
-        </label>
-        <input
-          id="name"
-          type="text"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="Seu nome"
-          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#63E3FF]/50 focus:border-[#63E3FF] transition-all"
-        />
-      </div>
-
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-2">
           Email corporativo

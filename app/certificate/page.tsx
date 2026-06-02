@@ -4,6 +4,7 @@ import Link from "next/link";
 import { VersiaLogo } from "../../components/VersiaLogo";
 import { UserProfileMini } from "../../components/UserProfileMini";
 import { LogoutButton } from "../../components/LogoutButton";
+import { PaginationControls } from "@/components/PaginationControls";
 import { 
   Home, 
   BookOpen, 
@@ -12,6 +13,7 @@ import {
   Bell,
   BellOff, 
   User,
+  Building2,
   Download,
   Share2,
   Trophy,
@@ -29,6 +31,8 @@ export default function CertificatePage() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [notificationTooltip, setNotificationTooltip] = useState<string | null>(null);
+  const [certificatePage, setCertificatePage] = useState(1);
+  const [timelinePage, setTimelinePage] = useState(1);
 
   useEffect(() => {
     const saved = localStorage.getItem('versia_notifications_enabled');
@@ -113,6 +117,13 @@ export default function CertificatePage() {
     { date: "10 Jan", event: "Certificado obtido", course: "Data Analytics", type: "certificate" },
   ];
 
+  const certificatesPerPage = 2;
+  const timelinePerPage = 3;
+  const totalCertificatePages = Math.ceil(certificates.length / certificatesPerPage);
+  const totalTimelinePages = Math.ceil(timeline.length / timelinePerPage);
+  const paginatedCertificates = certificates.slice((certificatePage - 1) * certificatesPerPage, certificatePage * certificatesPerPage);
+  const paginatedTimeline = timeline.slice((timelinePage - 1) * timelinePerPage, timelinePage * timelinePerPage);
+
   return (
     <div className="min-h-screen bg-[#050505]">
       {/* Mobile Menu Button */}
@@ -151,10 +162,14 @@ export default function CertificatePage() {
             <User className="w-5 h-5" />
             <span className="font-medium">Perfil</span>
           </Link>
-          <button className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all w-full">
+          <Link href="/company" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
+            <Building2 className="w-5 h-5" />
+            <span className="font-medium">Área da Empresa</span>
+          </Link>
+          <Link href="/settings" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
             <Settings className="w-5 h-5" />
             <span className="font-medium">Configurações</span>
-          </button>
+          </Link>
         </nav>
 
         <div className="border-t border-white/5 pt-4">
@@ -317,7 +332,7 @@ export default function CertificatePage() {
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4 md:p-6">
               <h3 className="text-lg md:text-xl font-bold text-white mb-4 md:mb-6">Todos os Certificados</h3>
               <div className="space-y-4">
-                {certificates.map((cert) => (
+                {paginatedCertificates.map((cert) => (
                   <div key={cert.id} className="bg-white/5 border border-white/10 rounded-xl p-4 md:p-5 hover:bg-white/10 transition-all group cursor-pointer">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
@@ -347,6 +362,7 @@ export default function CertificatePage() {
                   </div>
                 ))}
               </div>
+              <PaginationControls page={certificatePage} totalPages={totalCertificatePages} onPageChange={setCertificatePage} label="Certificados" />
             </div>
           </div>
 
@@ -384,7 +400,7 @@ export default function CertificatePage() {
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl md:rounded-2xl p-4 md:p-6">
               <h3 className="text-base md:text-xl font-bold text-white mb-3 md:mb-6">Histórico Recente</h3>
               <div className="space-y-3 md:space-y-6">
-                {timeline.map((item, index) => (
+                {paginatedTimeline.map((item, index) => (
                   <div key={index} className="flex gap-2 md:gap-4">
                     <div className="flex flex-col items-center">
                       <div className={`w-7 h-7 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
@@ -402,7 +418,7 @@ export default function CertificatePage() {
                           <BookOpen className="w-3 h-3 md:w-5 md:h-5 text-white" />
                         )}
                       </div>
-                      {index < timeline.length - 1 && (
+                      {index < paginatedTimeline.length - 1 && (
                         <div className="w-px h-full bg-white/10 mt-1.5 md:mt-2"></div>
                       )}
                     </div>
@@ -417,6 +433,7 @@ export default function CertificatePage() {
                   </div>
                 ))}
               </div>
+              <PaginationControls page={timelinePage} totalPages={totalTimelinePages} onPageChange={setTimelinePage} label="Histórico" />
             </div>
           </div>
         </div>

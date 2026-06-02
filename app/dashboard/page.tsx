@@ -5,6 +5,7 @@ import { VersiaLogo } from "../../components/VersiaLogo";
 import { UserProfileMini } from "../../components/UserProfileMini";
 import { LogoutButton } from "../../components/LogoutButton";
 import { PremiumBadge } from "../../components/PremiumBadge";
+import { PaginationControls } from "@/components/PaginationControls";
 import { 
   Home, 
   BookOpen, 
@@ -14,6 +15,7 @@ import {
   Bell,
   BellOff, 
   User,
+  Building2,
   Play,
   Clock,
   ChevronRight,
@@ -33,6 +35,7 @@ export default function DashboardPage() {
   const [isPremium, setIsPremium] = useState(false); // Simula status de assinatura
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [notificationTooltip, setNotificationTooltip] = useState<string | null>(null);
+  const [continuePage, setContinuePage] = useState(1);
 
   useEffect(() => {
     const saved = localStorage.getItem('versia_notifications_enabled');
@@ -124,6 +127,10 @@ export default function DashboardPage() {
     },
   ];
 
+  const dashboardItemsPerPage = 2;
+  const continueTotalPages = Math.ceil(courses.length / dashboardItemsPerPage);
+  const visibleCourses = courses.slice((continuePage - 1) * dashboardItemsPerPage, continuePage * dashboardItemsPerPage);
+
   return (
     <div className="min-h-screen bg-[#050505]">
       {/* Mobile Menu Button */}
@@ -158,10 +165,14 @@ export default function DashboardPage() {
             <User className="w-5 h-5" />
             <span className="font-medium">Perfil</span>
           </Link>
-          <button className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all w-full">
+          <Link href="/company" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
+            <Building2 className="w-5 h-5" />
+            <span className="font-medium">Área da Empresa</span>
+          </Link>
+          <Link href="/settings" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
             <Settings className="w-5 h-5" />
             <span className="font-medium">Configurações</span>
-          </button>
+          </Link>
         </nav>
 
         <div className="border-t border-white/5 pt-4">
@@ -248,7 +259,7 @@ export default function DashboardPage() {
                   <span className="text-white/80">Patricia Lima</span>
                 </div>
               </div>
-              <Link href="/course/1">
+              <Link href="/course/6">
                 <button className="px-6 md:px-8 py-3 md:py-4 rounded-xl font-semibold text-white flex items-center gap-2 w-fit shadow-lg shadow-[#63E3FF]/20 hover:shadow-[#63E3FF]/40 hover:scale-105 transition-all text-sm md:text-base"
                   style={{
                     background: 'linear-gradient(135deg, #63E3FF 0%, #2FA7FF 30%, #7A2CFF 65%, #E548FF 100%)',
@@ -290,10 +301,10 @@ export default function DashboardPage() {
                     Desbloqueie todo o potencial da Versia
                   </h3>
                   <p className="text-white/70 text-sm md:text-base mb-1">
-                    Acesso ilimitado • Mentorias 1:1 • Certificados premium • Downloads sem limite
+                    Trilhas premium • Downloads ilimitados • Certificados • Relatório de evolução
                   </p>
                   <p className="text-[#FFD700] font-semibold text-lg md:text-xl">
-                    Apenas R$ 24,90/mês
+                    Premium por apenas R$ 14,90/mês
                   </p>
                 </div>
                 
@@ -306,7 +317,7 @@ export default function DashboardPage() {
                       }}
                     >
                       <Crown className="w-5 h-5" />
-                      Assinar Premium
+                      Conhecer Premium
                       <ArrowRight className="w-5 h-5" />
                     </button>
                   </Link>
@@ -329,8 +340,8 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
-            {courses.map((course) => (
-              <Link key={course.id} href={`/lesson/${course.id}`}>
+            {visibleCourses.map((course) => (
+              <Link key={course.id} href={`/course/${course.id}`}>
                 <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl md:rounded-2xl overflow-hidden hover:bg-white/10 transition-all group cursor-pointer">
                   <div className="relative h-40 md:h-48 overflow-hidden">
                     <img
@@ -371,6 +382,7 @@ export default function DashboardPage() {
               </Link>
             ))}
           </div>
+          <PaginationControls page={continuePage} totalPages={continueTotalPages} onPageChange={setContinuePage} label="Cursos" />
         </section>
 
         {/* Mandatory */}
