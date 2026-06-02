@@ -5,14 +5,17 @@ import { VersiaLogo } from "../../components/VersiaLogo";
 import { UserProfileMini } from "../../components/UserProfileMini";
 import { LogoutButton } from "../../components/LogoutButton";
 import { PremiumBadge } from "../../components/PremiumBadge";
+import { PaginationControls } from "@/components/PaginationControls";
 import { 
   Home, 
   BookOpen, 
   Award, 
   Settings, 
   Search, 
-  Bell, 
+  Bell,
+  BellOff, 
   User,
+  Building2,
   Play,
   Clock,
   ChevronRight,
@@ -25,11 +28,27 @@ import {
   Sparkles,
   ArrowRight
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function DashboardPage() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isPremium, setIsPremium] = useState(false); // Simula status de assinatura
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [notificationTooltip, setNotificationTooltip] = useState<string | null>(null);
+  const [continuePage, setContinuePage] = useState(1);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('versia_notifications_enabled');
+    if (saved !== null) setNotificationsEnabled(saved === 'true');
+  }, []);
+
+  const toggleNotifications = () => {
+    const newState = !notificationsEnabled;
+    setNotificationsEnabled(newState);
+    localStorage.setItem('versia_notifications_enabled', String(newState));
+    setNotificationTooltip(newState ? "Notificações ativadas" : "Notificações desativadas");
+    setTimeout(() => setNotificationTooltip(null), 2000);
+  };
   
   const courses = [
     {
@@ -108,6 +127,10 @@ export default function DashboardPage() {
     },
   ];
 
+  const dashboardItemsPerPage = 2;
+  const continueTotalPages = Math.ceil(courses.length / dashboardItemsPerPage);
+  const visibleCourses = courses.slice((continuePage - 1) * dashboardItemsPerPage, continuePage * dashboardItemsPerPage);
+
   return (
     <div className="min-h-screen bg-[#050505]">
       {/* Mobile Menu Button */}
@@ -132,7 +155,7 @@ export default function DashboardPage() {
           </Link>
           <Link href="/courses" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
             <BookOpen className="w-5 h-5" />
-            <span className="font-medium">Meus Cursos</span>
+            <span className="font-medium">Catálogo de Cursos</span>
           </Link>
           <Link href="/certificate" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
             <Award className="w-5 h-5" />
@@ -142,10 +165,14 @@ export default function DashboardPage() {
             <User className="w-5 h-5" />
             <span className="font-medium">Perfil</span>
           </Link>
-          <button className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all w-full">
+          <Link href="/company" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
+            <Building2 className="w-5 h-5" />
+            <span className="font-medium">Área da Empresa</span>
+          </Link>
+          <Link href="/settings" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
             <Settings className="w-5 h-5" />
             <span className="font-medium">Configurações</span>
-          </button>
+          </Link>
         </nav>
 
         <div className="border-t border-white/5 pt-4">
@@ -181,9 +208,21 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="flex items-center gap-2 md:gap-4">
-              <button className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all">
-                <Bell className="w-5 h-5" />
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={toggleNotifications}
+                  className={`w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all ${
+                    notificationsEnabled ? 'text-[#63E3FF] hover:bg-[#63E3FF]/10' : 'text-white/40 hover:text-white/60'
+                  }`}
+                >
+                  {notificationsEnabled ? <Bell className="w-5 h-5" /> : <BellOff className="w-5 h-5" />}
+                </button>
+                {notificationTooltip && (
+                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/90 backdrop-blur-md border border-white/10 rounded-lg text-[10px] text-white animate-in fade-in slide-in-from-top-1 duration-200 whitespace-nowrap z-[60] shadow-2xl">
+                    {notificationTooltip}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </header>
@@ -220,7 +259,7 @@ export default function DashboardPage() {
                   <span className="text-white/80">Patricia Lima</span>
                 </div>
               </div>
-              <Link href="/course/1">
+              <Link href="/course/6">
                 <button className="px-6 md:px-8 py-3 md:py-4 rounded-xl font-semibold text-white flex items-center gap-2 w-fit shadow-lg shadow-[#63E3FF]/20 hover:shadow-[#63E3FF]/40 hover:scale-105 transition-all text-sm md:text-base"
                   style={{
                     background: 'linear-gradient(135deg, #63E3FF 0%, #2FA7FF 30%, #7A2CFF 65%, #E548FF 100%)',
@@ -262,10 +301,10 @@ export default function DashboardPage() {
                     Desbloqueie todo o potencial da Versia
                   </h3>
                   <p className="text-white/70 text-sm md:text-base mb-1">
-                    Acesso ilimitado • Mentorias 1:1 • Certificados premium • Downloads sem limite
+                    Trilhas premium • Downloads ilimitados • Certificados • Relatório de evolução
                   </p>
                   <p className="text-[#FFD700] font-semibold text-lg md:text-xl">
-                    Apenas R$ 24,90/mês
+                    Premium por apenas R$ 14,90/mês
                   </p>
                 </div>
                 
@@ -278,7 +317,7 @@ export default function DashboardPage() {
                       }}
                     >
                       <Crown className="w-5 h-5" />
-                      Assinar Premium
+                      Conhecer Premium
                       <ArrowRight className="w-5 h-5" />
                     </button>
                   </Link>
@@ -301,8 +340,8 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
-            {courses.map((course) => (
-              <Link key={course.id} href={`/lesson/${course.id}`}>
+            {visibleCourses.map((course) => (
+              <Link key={course.id} href={`/course/${course.id}`}>
                 <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl md:rounded-2xl overflow-hidden hover:bg-white/10 transition-all group cursor-pointer">
                   <div className="relative h-40 md:h-48 overflow-hidden">
                     <img
@@ -343,6 +382,7 @@ export default function DashboardPage() {
               </Link>
             ))}
           </div>
+          <PaginationControls page={continuePage} totalPages={continueTotalPages} onPageChange={setContinuePage} label="Cursos" />
         </section>
 
         {/* Mandatory */}

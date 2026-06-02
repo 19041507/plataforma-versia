@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import '../src/styles/index.css';
+import { AuthGate } from '@/components/AuthGate';
 
 export const metadata: Metadata = {
   title: 'Versia — Plataforma de Treinamento Corporativo',
   description:
-    'Plataforma premium de treinamento corporativo com experiência imersiva, certificados digitais e assinatura Premium.',
+    'Plataforma premium de treinamento corporativo com experiência imersiva, ' +
+    'certificados digitais e planos Premium a partir de R$ 14,90/mês.',
 };
 
 export default function RootLayout({
@@ -14,9 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <body className="min-h-screen bg-[#050505] text-white antialiased">
-        {children}
-      </body>
+      <body><AuthGate />{children}</body>
     </html>
   );
 }

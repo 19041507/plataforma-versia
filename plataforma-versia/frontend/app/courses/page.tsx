@@ -4,14 +4,17 @@ import Link from "next/link";
 import { VersiaLogo } from "../../components/VersiaLogo";
 import { UserProfileMini } from "../../components/UserProfileMini";
 import { LogoutButton } from "../../components/LogoutButton";
+import { PaginationControls } from "@/components/PaginationControls";
 import { 
   Home, 
   BookOpen, 
   Award, 
   Settings, 
   Search, 
-  Bell, 
+  Bell,
+  BellOff, 
   User,
+  Building2,
   Clock,
   Filter,
   Grid3x3,
@@ -20,11 +23,33 @@ import {
   Menu,
   X
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function CoursesPage() {
+  const [activeCategory, setActiveCategory] = useState("Todos");
+  const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [coursePage, setCoursePage] = useState(1);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [notificationTooltip, setNotificationTooltip] = useState<string | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('versia_notifications_enabled');
+    if (saved !== null) setNotificationsEnabled(saved === 'true');
+  }, []);
+
+  useEffect(() => {
+    setCoursePage(1);
+  }, [activeCategory, searchQuery, viewMode]);
+
+  const toggleNotifications = () => {
+    const newState = !notificationsEnabled;
+    setNotificationsEnabled(newState);
+    localStorage.setItem('versia_notifications_enabled', String(newState));
+    setNotificationTooltip(newState ? "Notificações ativadas" : "Notificações desativadas");
+    setTimeout(() => setNotificationTooltip(null), 2000);
+  };
 
   const allCourses = [
     {
@@ -117,6 +142,41 @@ export default function CoursesPage() {
     },
   ];
 
+  const filteredCourses = allCourses.filter(course => {
+    const matchesCategory = activeCategory === "Todos" 
+      ? true 
+      : activeCategory === "Meus Cursos" 
+        ? course.progress > 0 
+        : course.category === activeCategory;
+
+    const matchesSearch = 
+      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
+
+    return matchesCategory && matchesSearch;
+  });
+
+  const coursesPerPage = viewMode === "grid" ? 6 : 4;
+  const totalCoursePages = Math.max(1, Math.ceil(filteredCourses.length / coursesPerPage));
+  const paginatedCourses = filteredCourses.slice((coursePage - 1) * coursesPerPage, coursePage * coursesPerPage);
+
+  // Função para destacar o termo pesquisado
+  const highlightText = (text: string, highlight: string) => {
+    if (!highlight.trim()) return text;
+    const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
+    return (
+      <>
+        {parts.map((part, i) => 
+          part.toLowerCase() === highlight.toLowerCase() ? (
+            <span key={i} className="text-[#63E3FF] font-bold">{part}</span>
+          ) : (
+            part
+          )
+        )}
+      </>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[#050505]">
       {/* Mobile Menu Button */}
@@ -141,7 +201,7 @@ export default function CoursesPage() {
           </Link>
           <Link href="/courses" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-[#63E3FF]/20 to-[#7A2CFF]/20 text-white mb-2">
             <BookOpen className="w-5 h-5" />
-            <span className="font-medium">Meus Cursos</span>
+            <span className="font-medium">Catálogo de Cursos</span>
           </Link>
           <Link href="/certificate" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
             <Award className="w-5 h-5" />
@@ -151,10 +211,14 @@ export default function CoursesPage() {
             <User className="w-5 h-5" />
             <span className="font-medium">Perfil</span>
           </Link>
-          <button className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all w-full">
+          <Link href="/company" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
+            <Building2 className="w-5 h-5" />
+            <span className="font-medium">Área da Empresa</span>
+          </Link>
+          <Link href="/settings" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
             <Settings className="w-5 h-5" />
             <span className="font-medium">Configurações</span>
-          </button>
+          </Link>
         </nav>
 
         <div className="border-t border-white/5 pt-4">
@@ -184,15 +248,38 @@ export default function CoursesPage() {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
                 <input
                   type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Buscar cursos..."
-                  className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#63E3FF]/50 focus:border-[#63E3FF] transition-all text-sm md:text-base"
+                  className="w-full pl-12 pr-12 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#63E3FF]/50 focus:border-[#63E3FF] transition-all text-sm md:text-base"
                 />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-all p-1"
+                    aria-label="Limpar pesquisa"
+                  >
+                    <X className="w-4 h-4 md:w-5 md:h-5" />
+                  </button>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2 md:gap-4">
-              <button className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all">
-                <Bell className="w-5 h-5" />
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={toggleNotifications}
+                  className={`w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all ${
+                    notificationsEnabled ? 'text-[#63E3FF] hover:bg-[#63E3FF]/10' : 'text-white/40 hover:text-white/60'
+                  }`}
+                >
+                  {notificationsEnabled ? <Bell className="w-5 h-5" /> : <BellOff className="w-5 h-5" />}
+                </button>
+                {notificationTooltip && (
+                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/90 backdrop-blur-md border border-white/10 rounded-lg text-[10px] text-white animate-in fade-in slide-in-from-top-1 duration-200 whitespace-nowrap z-[60] shadow-2xl">
+                    {notificationTooltip}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </header>
@@ -228,26 +315,26 @@ export default function CoursesPage() {
 
           {/* Filter Pills */}
           <div className="flex items-center gap-2 md:gap-3 mb-6 md:mb-8 overflow-x-auto pb-2">
-            <button className="px-4 py-2 rounded-full bg-gradient-to-r from-[#63E3FF]/20 to-[#7A2CFF]/20 border border-[#63E3FF]/30 text-white font-medium">
-              Todos
-            </button>
-            <button className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all">
-              Tecnologia
-            </button>
-            <button className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all">
-              Liderança
-            </button>
-            <button className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all">
-              Soft Skills
-            </button>
-            <button className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all">
-              IA
-            </button>
+            {["Meus Cursos", "Todos", "Tecnologia", "Liderança", "Soft Skills", "IA"].map((category) => (
+              <button
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                className={`px-4 py-2 rounded-full border transition-all whitespace-nowrap ${
+                  activeCategory === category
+                    ? "bg-gradient-to-r from-[#63E3FF]/20 to-[#7A2CFF]/20 border-[#63E3FF]/30 text-white font-medium"
+                    : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
           </div>
 
           {/* Courses Grid */}
-          <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" : "space-y-4"}>
-            {allCourses.map((course) => (
+          {filteredCourses.length > 0 ? (
+            <>
+            <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" : "space-y-4"}>
+            {paginatedCourses.map((course) => (
               <Link key={course.id} href={`/course/${course.id}`}>
                 {viewMode === "grid" ? (
                   <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:bg-white/10 transition-all group cursor-pointer">
@@ -273,7 +360,9 @@ export default function CoursesPage() {
                       )}
                     </div>
                     <div className="p-6">
-                      <h4 className="text-lg font-semibold text-white mb-2 line-clamp-2">{course.title}</h4>
+                      <h4 className="text-lg font-semibold text-white mb-2 line-clamp-2">
+                        {highlightText(course.title, searchQuery)}
+                      </h4>
                       <p className="text-white/60 text-sm mb-4">{course.instructor}</p>
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-white/60 flex items-center gap-1">
@@ -317,7 +406,9 @@ export default function CoursesPage() {
                           </span>
                           <span className="text-white/40 text-xs">{course.level}</span>
                         </div>
-                        <h4 className="text-xl font-semibold text-white mb-2">{course.title}</h4>
+                        <h4 className="text-xl font-semibold text-white mb-2">
+                          {highlightText(course.title, searchQuery)}
+                        </h4>
                         <p className="text-white/60 text-sm mb-3">{course.instructor}</p>
                       </div>
                       <div className="flex items-center justify-between">
@@ -345,6 +436,30 @@ export default function CoursesPage() {
               </Link>
             ))}
           </div>
+          <PaginationControls page={coursePage} totalPages={totalCoursePages} onPageChange={setCoursePage} label="Cursos" />
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16 md:py-24 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/5 flex items-center justify-center mb-4 md:mb-6 border border-white/10">
+                <Search className="w-8 h-8 md:w-10 md:h-10 text-white/20" />
+              </div>
+              <h2 className="text-xl md:text-2xl font-bold text-white mb-2">Nenhum curso encontrado</h2>
+              <div className="text-white/60 max-w-sm mx-auto text-sm md:text-base px-4 space-y-1">
+                <p>Não encontramos resultados para sua busca.</p>
+                {searchQuery && <p>Pesquisa: <span className="text-[#63E3FF]">"{searchQuery}"</span></p>}
+                {activeCategory !== "Todos" && <p>Categoria: <span className="text-[#63E3FF]">"{activeCategory}"</span></p>}
+              </div>
+              <button 
+                onClick={() => {
+                  setActiveCategory("Todos");
+                  setSearchQuery("");
+                }}
+                className="mt-6 md:mt-8 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all font-medium text-sm md:text-base"
+              >
+                Limpar filtros
+              </button>
+            </div>
+          )}
         </div>
       </main>
     </div>

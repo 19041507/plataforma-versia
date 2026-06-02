@@ -13,7 +13,7 @@ import {
   Award,
   Download,
   Users,
-  HeadphonesIcon,
+  Headphones,
   TrendingUp,
   Sparkles,
   Shield,
@@ -25,94 +25,116 @@ import { useState } from "react";
 
 export default function SubscriptionPage() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
-
-  const plans = [
+ const plans = [
     {
       name: "Gratuito",
       price: "0,00",
       period: "para sempre",
-      description: "Perfeito para começar sua jornada de aprendizado",
+      description: "Para conhecer a plataforma e iniciar seus primeiros cursos",
       icon: Star,
       color: "from-gray-400 to-gray-600",
       features: [
-        { text: "Acesso a cursos básicos", included: true },
+        { text: "Acesso a cursos introdutórios", included: true },
         { text: "Certificados digitais padrão", included: true },
         { text: "Até 3 cursos simultâneos", included: true },
-        { text: "Suporte via email (48h)", included: true },
-        { text: "Cursos premium exclusivos", included: false },
+        { text: "Histórico básico de progresso", included: true },
+        { text: "Suporte via email em até 48h", included: true },
+        { text: "Cursos premium e trilhas avançadas", included: false },
         { text: "Downloads ilimitados", included: false },
-        { text: "Mentorias individuais", included: false },
-        { text: "Acesso antecipado", included: false },
-        { text: "Certificados premium", included: false },
         { text: "Relatórios personalizados", included: false },
+        { text: "Mentorias e encontros ao vivo", included: false },
       ],
       cta: "Plano Atual",
       popular: false,
     },
     {
       name: "Premium",
+      price: "14,90",
+      period: "por mês",
+      annualPrice: "149,00",
+      annualPeriod: "por ano",
+      description: "O plano com mais valor para estudar mais pagando pouco",
+      icon: Crown,
+      color: "from-[#FFD700] to-[#FF8C00]",
+      features: [
+        { text: "Tudo do plano gratuito", included: true },
+        { text: "Acesso a trilhas premium selecionadas", included: true },
+        { text: "Certificados digitais valorizados", included: true },
+        { text: "Downloads ilimitados de PDFs e materiais", included: true },
+        { text: "Até 8 cursos simultâneos", included: true },
+        { text: "Aulas práticas e exercícios guiados", included: true },
+        { text: "Relatório mensal de evolução", included: true },
+        { text: "Suporte prioritário em até 24h", included: true },
+        { text: "Comunidade de alunos Premium", included: true },
+        { text: "Conteúdos novos adicionados mensalmente", included: true },
+        { text: "Mentoria individual 1:1", included: false },
+        { text: "Suporte 24/7 com prioridade máxima", included: false },
+      ],
+      cta: "Começar com Premium",
+      popular: true,
+      savings: billingCycle === "annual" ? "Economize R$ 29,80/ano" : undefined,
+    },
+    {
+      name: "Premium Max",
       price: "24,90",
       period: "por mês",
       annualPrice: "249,00",
       annualPeriod: "por ano",
-      description: "Acelere seu desenvolvimento com recursos exclusivos",
-      icon: Crown,
-      color: "from-[#FFD700] to-[#FF8C00]",
+      description: "Para quem quer acompanhamento, prioridade e recursos avançados",
+      icon: Zap,
+      color: "from-blue-400 to-blue-600",
       features: [
-        { text: "Todos os recursos do plano gratuito", included: true },
+        { text: "Tudo do plano Premium", included: true },
         { text: "Acesso a 100% dos cursos premium", included: true },
-        { text: "Certificados com selo premium", included: true },
-        { text: "Downloads ilimitados (PDFs, materiais)", included: true },
+        { text: "Certificados com selo Premium Max", included: true },
         { text: "Cursos simultâneos ilimitados", included: true },
-        { text: "Suporte prioritário 24/7", included: true },
-        { text: "Mentorias 1:1 mensais (2h)", included: true },
+        { text: "Mentoria 1:1 mensal com especialista", included: true },
+        { text: "Suporte 24/7 com prioridade máxima", included: true },
+        { text: "Relatórios avançados e recomendações", included: true },
         { text: "Acesso antecipado a novos cursos", included: true },
-        { text: "Relatórios de progresso personalizados", included: true },
-        { text: "Gamificação avançada e rankings", included: true },
-        { text: "Networking exclusivo com outros Premium", included: true },
-        { text: "Webinars ao vivo com especialistas", included: true },
+        { text: "Webinars ao vivo e networking exclusivo", included: true },
+        { text: "Plano de estudos personalizado", included: true },
       ],
-      cta: "Começar Agora",
-      popular: true,
-      savings: billingCycle === "annual" ? "Economize R$ 50/ano" : undefined,
+      cta: "Assinar Premium Max",
+      popular: false,
+      savings: billingCycle === "annual" ? "Economize R$ 49,80/ano" : undefined,
     },
   ];
-
   const premiumBenefits = [
     {
       icon: Zap,
-      title: "Aprendizado Acelerado",
-      description: "Acesso imediato a todos os cursos premium e materiais exclusivos",
+      title: "Melhor custo-benefício",
+      description: "O Premium entrega materiais ilimitados, trilhas premium selecionadas e relatórios por um preço acessível.",
       color: "from-[#63E3FF] to-[#2FA7FF]",
     },
     {
       icon: Award,
-      title: "Certificados Premium",
-      description: "Certificados com selo dourado verificado e reconhecimento profissional",
+      title: "Certificados que valorizam o aluno",
+      description: "Certificados digitais para comprovar evolução e fortalecer currículo ou treinamento interno.",
       color: "from-[#FFD700] to-[#FFA500]",
     },
     {
-      icon: Users,
-      title: "Mentorias Exclusivas",
-      description: "2 horas mensais de mentoria individual com especialistas do setor",
+      icon: Download,
+      title: "Materiais sem travar o estudo",
+      description: "Downloads ilimitados de PDFs, exercícios e materiais de apoio para estudar dentro e fora da plataforma.",
       color: "from-[#7A2CFF] to-[#E548FF]",
     },
     {
-      icon: HeadphonesIcon,
-      title: "Suporte Prioritário",
-      description: "Atendimento 24/7 com tempo de resposta garantido em até 2 horas",
+      icon: TrendingUp,
+      title: "Evolução visível",
+      description: "Relatórios mensais mostram progresso, cursos em andamento e próximos passos recomendados.",
       color: "from-[#2FA7FF] to-[#7A2CFF]",
     },
     {
-      icon: TrendingUp,
-      title: "Relatórios Avançados",
-      description: "Analytics detalhados do seu progresso e recomendações personalizadas",
+      icon: Users,
+      title: "Comunidade Premium",
+      description: "Ambiente para acompanhar novidades, trocar experiências e se manter motivado durante os estudos.",
       color: "from-[#E548FF] to-[#63E3FF]",
     },
     {
       icon: Rocket,
-      title: "Acesso Antecipado",
-      description: "Seja o primeiro a experimentar novos cursos e funcionalidades",
+      title: "Upgrade para quem precisa de mais",
+      description: "O Premium Max adiciona mentorias, suporte máximo, todos os cursos e plano de estudos personalizado.",
       color: "from-[#63E3FF] to-[#7A2CFF]",
     },
   ];
@@ -123,7 +145,7 @@ export default function SubscriptionPage() {
       role: "Gerente de Projetos",
       company: "Tech Solutions",
       photo: "MS",
-      text: "O plano Premium transformou minha carreira. As mentorias individuais me deram insights valiosos que aplico diariamente.",
+      text: "O Premium foi o plano ideal para minha rotina: preço acessível, materiais completos e certificados para comprovar cada etapa.",
       rating: 5,
     },
     {
@@ -131,7 +153,7 @@ export default function SubscriptionPage() {
       role: "Desenvolvedor Senior",
       company: "Innovation Labs",
       photo: "RA",
-      text: "Acesso ilimitado aos cursos e materiais premium acelerou meu aprendizado. Melhor investimento que já fiz!",
+      text: "A diferença do gratuito para o Premium vale muito. Consegui estudar mais cursos, baixar materiais e acompanhar meu progresso.",
       rating: 5,
     },
     {
@@ -139,27 +161,27 @@ export default function SubscriptionPage() {
       role: "Líder de Equipe",
       company: "Digital Corp",
       photo: "JC",
-      text: "Os relatórios personalizados me ajudam a identificar áreas de melhoria. Suporte premium é excepcional!",
+      text: "Uso o Premium Max quando preciso de acompanhamento mais próximo, mas o Premium já entrega o essencial para evoluir rápido.",
       rating: 5,
     },
   ];
 
   const faqs = [
     {
+      question: "Qual plano é mais indicado para a maioria dos alunos?",
+      answer: "O Premium é o principal plano da Versia porque entrega trilhas premium selecionadas, downloads ilimitados, certificados e relatórios por um preço mais acessível.",
+    },
+    {
+      question: "Qual a diferença entre Premium e Premium Max?",
+      answer: "O Premium Max inclui tudo do Premium e adiciona recursos para quem precisa de acompanhamento mais forte: todos os cursos premium, mentoria 1:1, suporte 24/7, relatórios avançados e plano de estudos personalizado.",
+    },
+    {
       question: "Posso cancelar a assinatura a qualquer momento?",
-      answer: "Sim! Você pode cancelar sua assinatura quando quiser, sem taxas ou multas. Manterá acesso até o fim do período pago.",
+      answer: "Sim. Você pode cancelar quando quiser, sem taxas ou multas. O acesso permanece ativo até o fim do período contratado.",
     },
     {
-      question: "Como funcionam as mentorias individuais?",
-      answer: "Assinantes Premium têm direito a 2 horas mensais de mentoria 1:1 com especialistas. Agende através da plataforma conforme sua disponibilidade.",
-    },
-    {
-      question: "Os certificados premium são reconhecidos?",
-      answer: "Sim! Nossos certificados premium possuem selo dourado verificado e são reconhecidos por empresas parceiras em todo o Brasil.",
-    },
-    {
-      question: "Qual a diferença do suporte premium?",
-      answer: "Assinantes Premium têm atendimento prioritário 24/7 com SLA de 2 horas, enquanto o plano gratuito tem suporte por email em até 48h.",
+      question: "Os certificados são digitais?",
+      answer: "Sim. A Versia oferece certificados digitais para comprovar conclusão. No Premium Max, os certificados recebem selo especial do plano.",
     },
   ];
 
@@ -196,7 +218,7 @@ export default function SubscriptionPage() {
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full bg-gradient-to-r from-[#FFD700]/20 to-[#FF8C00]/20 border border-[#FFD700]/30">
               <Sparkles className="w-5 h-5 text-[#FFD700]" />
-              <span className="text-sm font-semibold text-white">Oferta Especial de Lançamento</span>
+              <span className="text-sm font-semibold text-white">Planos pensados para cada fase</span>
             </div>
             
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
@@ -208,7 +230,7 @@ export default function SubscriptionPage() {
             </h1>
             
             <p className="text-lg md:text-xl text-white/70 mb-8 max-w-2xl mx-auto">
-              Desbloqueie todo o potencial da plataforma com acesso ilimitado, mentorias exclusivas e recursos premium
+              Escolha entre o Premium com melhor custo-benefício e o Premium Max para quem precisa de acompanhamento avançado
             </p>
 
             <div className="flex items-center justify-center gap-4 mb-12">
@@ -251,7 +273,7 @@ export default function SubscriptionPage() {
 
         {/* Pricing Plans */}
         <section className="px-4 md:px-8 pb-16 md:pb-20">
-          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
             {plans.map((plan) => (
               <div
                 key={plan.name}
@@ -264,7 +286,7 @@ export default function SubscriptionPage() {
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                     <div className="bg-gradient-to-r from-[#FFD700] to-[#FF8C00] px-6 py-2 rounded-full font-bold text-sm text-white shadow-lg">
-                      🔥 MAIS POPULAR
+                      🔥 MELHOR CUSTO-BENEFÍCIO
                     </div>
                   </div>
                 )}
@@ -332,10 +354,10 @@ export default function SubscriptionPage() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12 md:mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                Por que escolher Premium?
+                Por que o Premium é o principal chamariz?
               </h2>
               <p className="text-white/70 text-lg max-w-2xl mx-auto">
-                Recursos exclusivos desenvolvidos para acelerar seu desenvolvimento profissional
+                Benefícios fortes, úteis e com preço acessível para convencer o aluno a sair do gratuito
               </p>
             </div>
 
@@ -364,10 +386,10 @@ export default function SubscriptionPage() {
                 <PremiumBadge variant="large" />
               </div>
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                O que dizem nossos assinantes Premium
+                O que dizem nossos alunos Premium
               </h2>
               <p className="text-white/70 text-lg max-w-2xl mx-auto">
-                Profissionais que transformaram suas carreiras com a Versia Premium
+                Profissionais que evoluíram com os planos pagos da Versia
               </p>
             </div>
 
@@ -409,7 +431,7 @@ export default function SubscriptionPage() {
                 Perguntas Frequentes
               </h2>
               <p className="text-white/70 text-lg">
-                Tire suas dúvidas sobre o plano Premium
+                Tire suas dúvidas sobre os planos Premium e Premium Max
               </p>
             </div>
 
@@ -439,10 +461,10 @@ export default function SubscriptionPage() {
               <div className="relative z-10">
                 <Crown className="w-16 h-16 text-[#FFD700] mx-auto mb-6" />
                 <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                  Pronto para se tornar Premium?
+                  Pronto para desbloquear o Premium?
                 </h2>
                 <p className="text-white/70 text-lg mb-8 max-w-2xl mx-auto">
-                  Junte-se a milhares de profissionais que já transformaram suas carreiras com a Versia Premium
+                  Comece pelo plano com melhor custo-benefício e faça upgrade para o Premium Max quando precisar de recursos avançados
                 </p>
                 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -452,7 +474,7 @@ export default function SubscriptionPage() {
                       background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%)',
                     }}
                   >
-                    Assinar Premium - R$ 24,90/mês
+                    Assinar Premium - R$ 14,90/mês
                   </button>
                   
                   <Link href="/dashboard" className="w-full sm:w-auto">
@@ -477,9 +499,11 @@ export default function SubscriptionPage() {
               <p className="text-white/60 text-sm">
                 © 2026 Versia. Plataforma de treinamento corporativo premium.
               </p>
-              <p className="text-white/40 text-sm">
-                Transformando carreiras através do conhecimento
-              </p>
+              <div className="flex flex-wrap items-center justify-center gap-4 text-white/40 text-sm">
+                <Link href="/terms" className="hover:text-[#63E3FF] transition-all">Termos de Uso</Link>
+                <Link href="/privacy" className="hover:text-[#63E3FF] transition-all">Política de Privacidade</Link>
+                <span>Transformando carreiras através do conhecimento</span>
+              </div>
             </div>
           </div>
         </footer>

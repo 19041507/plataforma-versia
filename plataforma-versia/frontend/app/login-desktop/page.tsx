@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { SignInForm } from '@/components/SignInForm';
 import { VersiaLoginLogo } from '../../components/VersiaLoginLogo';
 
 export default function LoginDesktopPage() {
@@ -46,76 +46,7 @@ export default function LoginDesktopPage() {
             <p className="text-white/60">Entre na sua conta para continuar aprendendo</p>
           </div>
 
-          <form className="space-y-6">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-white/80 mb-2">
-                Nome completo
-              </label>
-              <input
-                id="name"
-                type="text"
-                placeholder="Seu nome"
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#63E3FF]/50 focus:border-[#63E3FF] transition-all"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-2">
-                Email corporativo
-              </label>
-              <input
-                id="email"
-                type="email"
-                placeholder="seu.email@empresa.com"
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#63E3FF]/50 focus:border-[#63E3FF] transition-all"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-white/80 mb-2">
-                Senha
-              </label>
-              <input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#63E3FF]/50 focus:border-[#63E3FF] transition-all"
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <input
-                id="terms"
-                type="checkbox"
-                className="w-4 h-4 rounded bg-white/5 border-white/20 text-[#63E3FF] focus:ring-[#63E3FF]/50"
-              />
-              <label htmlFor="terms" className="text-sm text-white/60">
-                Aceito os{" "}
-                <a href="#" className="text-[#63E3FF] hover:underline">
-                  termos de uso
-                </a>{" "}
-                e{" "}
-                <a href="#" className="text-[#63E3FF] hover:underline">
-                  política de privacidade
-                </a>
-              </label>
-            </div>
-
-            <div className="space-y-3 pt-2">
-              <Link href="/dashboard">
-                <button
-                  type="button"
-                  className="w-full px-6 py-4 rounded-xl font-semibold text-white transition-all shadow-lg shadow-[#63E3FF]/20 hover:shadow-[#63E3FF]/40 hover:scale-[1.02]"
-                  style={{
-                    background: 'linear-gradient(135deg, #63E3FF 0%, #2FA7FF 30%, #7A2CFF 65%, #E548FF 100%)',
-                  }}
-                >
-                  Entrar na plataforma
-                </button>
-              </Link>
-
-            </div>
-          </form>
+          <SignInForm />
 
           <div className="mt-8 text-center">
             <a href="#" className="text-sm text-[#63E3FF] hover:underline">

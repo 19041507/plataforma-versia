@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut, X } from "lucide-react";
+import { clearClientAuth, logoutFromBackend } from "@/lib/versiaApi";
 
 interface LogoutButtonProps {
   variant?: "sidebar" | "header";
@@ -12,17 +13,17 @@ export function LogoutButton({ variant = "sidebar" }: LogoutButtonProps) {
   const router = useRouter();
   const [showConfirm, setShowConfirm] = useState(false);
 
-  function handleLogout() {
+  async function handleLogout() {
     try {
-      localStorage.removeItem("versia_user");
-      localStorage.removeItem("versia_session");
-      sessionStorage.clear();
+      await logoutFromBackend();
+      clearClientAuth();
     } catch {
-      // Mantém a saída funcionando mesmo se o armazenamento estiver indisponível.
+      clearClientAuth();
     }
 
-    router.push("/login-desktop");
+    router.push('/login-desktop');
   }
+
 
   const buttonClass = variant === "header"
     ? "px-4 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2 text-sm md:text-base"
@@ -35,10 +36,15 @@ export function LogoutButton({ variant = "sidebar" }: LogoutButtonProps) {
       <button
         type="button"
         onClick={() => setShowConfirm(true)}
-        className={buttonClass}
+        className={`${buttonClass} group relative`}
       >
         <LogOut className={iconClass} />
         <span className="font-medium">Sair</span>
+
+        {/* Tooltip visual */}
+        <div className={`absolute left-1/2 -translate-x-1/2 px-2 py-1 bg-black/80 backdrop-blur-md border border-white/10 rounded text-[10px] text-white opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-[110] shadow-xl ${variant === 'header' ? 'top-full mt-2' : 'bottom-full mb-2'}`}>
+          Encerrar sessão
+        </div>
       </button>
 
       {showConfirm && (

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { VersiaLogo } from "../../components/VersiaLogo";
 import { UserProfileMini, USER_PROFILE_IMAGE } from "../../components/UserProfileMini";
+import { PaginationControls } from "@/components/PaginationControls";
+import { DEFAULT_USER, getClientUser, type VersiaUser } from "@/lib/clientUser";
 import { LogoutButton } from "../../components/LogoutButton";
 import {
   Home,
@@ -10,7 +12,9 @@ import {
   Award,
   Settings,
   Bell,
+  BellOff,
   User,
+  Building2,
   Mail,
   Phone,
   MapPin,
@@ -26,10 +30,29 @@ import {
   Menu,
   X
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function ProfilePage() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [notificationTooltip, setNotificationTooltip] = useState<string | null>(null);
+  const [user, setUser] = useState<VersiaUser>(DEFAULT_USER);
+  const [activityPage, setActivityPage] = useState(1);
+  const [achievementPage, setAchievementPage] = useState(1);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('versia_notifications_enabled');
+    if (saved !== null) setNotificationsEnabled(saved === 'true');
+    setUser(getClientUser());
+  }, []);
+
+  const toggleNotifications = () => {
+    const newState = !notificationsEnabled;
+    setNotificationsEnabled(newState);
+    localStorage.setItem('versia_notifications_enabled', String(newState));
+    setNotificationTooltip(newState ? "Notificações ativadas" : "Notificações desativadas");
+    setTimeout(() => setNotificationTooltip(null), 2000);
+  };
 
   const userStats = [
     { label: "Cursos em Andamento", value: "8", icon: Target, change: "+2 este mês", color: "from-[#63E3FF] to-[#2FA7FF]" },
@@ -51,6 +74,12 @@ export default function ProfilePage() {
     { date: "28 Fev", event: "Obteve certificado", title: "Gestão de Projetos Ágeis" },
     { date: "20 Fev", event: "Badge conquistada", title: "Estudante Dedicado" },
   ];
+
+  const profileItemsPerPage = 2;
+  const totalActivityPages = Math.ceil(recentActivity.length / profileItemsPerPage);
+  const totalAchievementPages = Math.ceil(achievements.length / profileItemsPerPage);
+  const paginatedActivity = recentActivity.slice((activityPage - 1) * profileItemsPerPage, activityPage * profileItemsPerPage);
+  const paginatedAchievements = achievements.slice((achievementPage - 1) * profileItemsPerPage, achievementPage * profileItemsPerPage);
 
   return (
     <div className="min-h-screen bg-[#050505]">
@@ -75,7 +104,7 @@ export default function ProfilePage() {
           </Link>
           <Link href="/courses" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
             <BookOpen className="w-5 h-5" />
-            <span className="font-medium">Meus Cursos</span>
+            <span className="font-medium">Catálogo de Cursos</span>
           </Link>
           <Link href="/certificate" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
             <Award className="w-5 h-5" />
@@ -85,10 +114,14 @@ export default function ProfilePage() {
             <User className="w-5 h-5" />
             <span className="font-medium">Perfil</span>
           </Link>
-          <button className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all w-full">
+          <Link href="/company" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
+            <Building2 className="w-5 h-5" />
+            <span className="font-medium">Área da Empresa</span>
+          </Link>
+          <Link href="/settings" className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all">
             <Settings className="w-5 h-5" />
             <span className="font-medium">Configurações</span>
-          </button>
+          </Link>
         </nav>
 
         <div className="border-t border-white/5 pt-4">
@@ -116,9 +149,21 @@ export default function ProfilePage() {
               <h1 className="text-xl md:text-2xl font-bold text-white">Meu Perfil</h1>
               <p className="text-white/60 text-xs md:text-sm mt-1">Gerencie suas informações e acompanhe seu progresso</p>
             </div>
-            <button className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all">
-              <Bell className="w-5 h-5" />
-            </button>
+            <div className="relative">
+              <button 
+                onClick={toggleNotifications}
+                className={`w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all ${
+                  notificationsEnabled ? 'text-[#63E3FF] hover:bg-[#63E3FF]/10' : 'text-white/40 hover:text-white/60'
+                }`}
+              >
+                {notificationsEnabled ? <Bell className="w-5 h-5" /> : <BellOff className="w-5 h-5" />}
+              </button>
+              {notificationTooltip && (
+                <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/90 backdrop-blur-md border border-white/10 rounded-lg text-[10px] text-white animate-in fade-in slide-in-from-top-1 duration-200 whitespace-nowrap z-[60] shadow-2xl">
+                  {notificationTooltip}
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -142,7 +187,7 @@ export default function ProfilePage() {
                 <div className="relative">
                   <img
                     src={USER_PROFILE_IMAGE}
-                    alt="Daniel Augusto"
+                    alt={user.name}
                     className="w-24 h-24 md:w-32 md:h-32 rounded-2xl object-cover border-4 border-[#050505]"
                   />
                   <button className="absolute bottom-0 right-0 w-8 h-8 md:w-10 md:h-10 rounded-lg bg-[#63E3FF] flex items-center justify-center hover:bg-[#2FA7FF] transition-all">
@@ -151,16 +196,16 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="flex-1 text-center md:text-left">
-                  <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Daniel Augusto</h2>
-                  <p className="text-white/70 text-sm md:text-base mb-3">Analista de Dados • Versia Learning Platform</p>
+                  <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">{user.name}</h2>
+                  <p className="text-white/70 text-sm md:text-base mb-3">{user.position} • {user.company}</p>
                   <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 md:gap-4 text-xs md:text-sm text-white/60">
                     <div className="flex items-center gap-1.5">
                       <Mail className="w-4 h-4" />
-                      <span>daniel.augusto@empresa.com</span>
+                      <span>{user.email}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-4 h-4" />
-                      <span>Membro desde Jan 2025</span>
+                      <span>Membro desde {user.memberSince}</span>
                     </div>
                   </div>
                 </div>
@@ -210,27 +255,27 @@ export default function ProfilePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
                   <label className="text-white/60 text-sm mb-2 block">Nome Completo</label>
-                  <p className="text-white font-medium">Daniel Augusto</p>
+                  <p className="text-white font-medium">{user.name}</p>
                 </div>
                 <div>
                   <label className="text-white/60 text-sm mb-2 block">Email</label>
-                  <p className="text-white font-medium">daniel.augusto@empresa.com</p>
+                  <p className="text-white font-medium">{user.email}</p>
                 </div>
                 <div>
                   <label className="text-white/60 text-sm mb-2 block">Telefone</label>
-                  <p className="text-white font-medium">+55 11 99999-9999</p>
+                  <p className="text-white font-medium">{user.phone}</p>
                 </div>
                 <div>
                   <label className="text-white/60 text-sm mb-2 block">Cargo</label>
-                  <p className="text-white font-medium">Analista de Dados</p>
+                  <p className="text-white font-medium">{user.position}</p>
                 </div>
                 <div>
                   <label className="text-white/60 text-sm mb-2 block">Departamento</label>
-                  <p className="text-white font-medium">Tecnologia da Informação</p>
+                  <p className="text-white font-medium">{user.department}</p>
                 </div>
                 <div>
                   <label className="text-white/60 text-sm mb-2 block">Localização</label>
-                  <p className="text-white font-medium">São Paulo, Brasil</p>
+                  <p className="text-white font-medium">{user.location}</p>
                 </div>
               </div>
             </div>
@@ -239,7 +284,7 @@ export default function ProfilePage() {
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
               <h3 className="text-xl font-bold text-white mb-6">Atividade Recente</h3>
               <div className="space-y-4">
-                {recentActivity.map((activity, index) => (
+                {paginatedActivity.map((activity, index) => (
                   <div key={index} className="flex items-start gap-4 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-all">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#63E3FF] to-[#7A2CFF] flex items-center justify-center flex-shrink-0">
                       <CheckCircle2 className="w-5 h-5 text-white" />
@@ -252,6 +297,7 @@ export default function ProfilePage() {
                   </div>
                 ))}
               </div>
+              <PaginationControls page={activityPage} totalPages={totalActivityPages} onPageChange={setActivityPage} label="Atividades" />
             </div>
           </div>
 
@@ -261,7 +307,7 @@ export default function ProfilePage() {
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
               <h3 className="text-xl font-bold text-white mb-6">Conquistas</h3>
               <div className="space-y-4">
-                {achievements.map((achievement, index) => (
+                {paginatedAchievements.map((achievement, index) => (
                   <div
                     key={index}
                     className={`p-4 rounded-xl border transition-all ${
@@ -283,6 +329,7 @@ export default function ProfilePage() {
                   </div>
                 ))}
               </div>
+              <PaginationControls page={achievementPage} totalPages={totalAchievementPages} onPageChange={setAchievementPage} label="Conquistas" />
             </div>
 
             {/* Learning Preferences */}

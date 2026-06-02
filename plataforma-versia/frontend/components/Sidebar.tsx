@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { VersiaLogo } from "./VersiaLogo";
-import { Home, BookOpen, Award, Settings } from "lucide-react";
+import { Home, BookOpen, Award, Settings, User, Building2 } from "lucide-react";
 import { UserProfileMini } from "./UserProfileMini";
 import { LogoutButton } from "./LogoutButton";
 
 interface SidebarProps {
-  currentPage: "dashboard" | "courses" | "certificate" | "lesson";
+  currentPage: "dashboard" | "courses" | "certificate" | "lesson" | "settings" | "company" | "profile";
   showMobile: boolean;
 }
 
@@ -38,7 +38,7 @@ export function Sidebar({ currentPage, showMobile }: SidebarProps) {
           }`}
         >
           <BookOpen className="w-5 h-5" />
-          <span className="font-medium">Meus Cursos</span>
+          <span className="font-medium">Catálogo de Cursos</span>
         </Link>
         <Link 
           href="/certificate" 
@@ -51,10 +51,39 @@ export function Sidebar({ currentPage, showMobile }: SidebarProps) {
           <Award className="w-5 h-5" />
           <span className="font-medium">Certificados</span>
         </Link>
-        <button className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 mb-2 transition-all w-full">
+        <Link 
+          href="/profile" 
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all ${
+            currentPage === "profile" 
+              ? "bg-gradient-to-r from-[#63E3FF]/20 to-[#7A2CFF]/20 text-white" 
+              : "text-white/60 hover:text-white hover:bg-white/5"
+          }`}
+        >
+          <User className="w-5 h-5" />
+          <span className="font-medium">Perfil</span>
+        </Link>
+        <Link 
+          href="/company" 
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all ${
+            currentPage === "company" 
+              ? "bg-gradient-to-r from-[#63E3FF]/20 to-[#7A2CFF]/20 text-white" 
+              : "text-white/60 hover:text-white hover:bg-white/5"
+          }`}
+        >
+          <Building2 className="w-5 h-5" />
+          <span className="font-medium">Área da Empresa</span>
+        </Link>
+        <Link 
+          href="/settings" 
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all ${
+            currentPage === "settings" 
+              ? "bg-gradient-to-r from-[#63E3FF]/20 to-[#7A2CFF]/20 text-white" 
+              : "text-white/60 hover:text-white hover:bg-white/5"
+          }`}
+        >
           <Settings className="w-5 h-5" />
           <span className="font-medium">Configurações</span>
-        </button>
+        </Link>
       </nav>
 
       <div className="border-t border-white/5 pt-4">
