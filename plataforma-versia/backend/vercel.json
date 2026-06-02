@@ -7,8 +7,7 @@
       "use": "@vercel/python",
       "config": {
         "maxLambdaSize": "50mb",
-        "runtime": "python3.12",
-        "installCommand": "pip install -r requirements.txt && bash build_files.sh"
+        "runtime": "python3.12"
       }
     }
   ],

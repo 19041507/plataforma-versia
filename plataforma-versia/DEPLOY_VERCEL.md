@@ -127,8 +127,9 @@ Helper de API no frontend: `frontend/lib/api.ts` (`apiFetch`, header `X-Tenant`)
 O `build_files.sh` **não rodou**. Causas comuns:
 
 1. **Root Directory errado** — alinhe com a tabela acima (backend ou raiz do repo).
-2. **`builds` no vercel.json** — os campos Build/Install do painel da Vercel são ignorados; o script roda via `installCommand` dentro de `builds.config`.
-3. Confira no log de build se aparecem `Coletando arquivos estáticos` e `Migrações`.
+2. **`builds` no vercel.json** — o painel da Vercel não aplica Build/Install customizados; o `build_files.sh` roda via `setup.py` quando o pip processa `-e .` no final do `requirements.txt`.
+3. Confira no log de build se aparecem `Executando build_files.sh` e `Coletando arquivos estáticos`.
+4. **`DATABASE_URL` no build** — em Settings → Environment Variables, marque `DATABASE_URL` para **Production, Preview e Development** (incluindo builds), senão as migrações são puladas.
 
 ### Build do frontend: erro `@next/swc-*` 404
 
