@@ -5,6 +5,7 @@ const REFRESH_TOKEN_KEY = 'versia_refresh_token';
 const SESSION_COOKIE_NAME = 'versia_session';
 const USER_COOKIE_NAME = 'versia_user';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+const LOGIN_TIMEOUT_MS = 10000;
 
 export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/+$/, '');
 export const TENANT_SCHEMA = (process.env.NEXT_PUBLIC_TENANT_SCHEMA ?? 'demo').trim() || 'demo';
@@ -142,23 +143,40 @@ export function getRefreshToken() {
 export async function loginWithBackend(email: string, password: string): Promise<LoginResult | null> {
   if (!isApiConfigured()) return null;
 
-  const response = await fetch(apiUrl('/api/auth/login/'), {
-    method: 'POST',
-    headers: authHeaders(false),
-    body: JSON.stringify({
-      usuario: email,
-      username: email,
-      email,
-      senha: password,
-      password,
-    }),
-  });
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), LOGIN_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(apiUrl('/api/auth/login/'), {
+      method: 'POST',
+      headers: authHeaders(false),
+      signal: controller.signal,
+      body: JSON.stringify({
+        usuario: email,
+        username: email,
+        email,
+        senha: password,
+        password,
+      }),
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('O backend demorou para responder. Entrando em modo demonstração.');
+    }
+
+    throw error;
+  } finally {
+    window.clearTimeout(timeout);
+  }
 
   const data = (await response.json().catch(() => ({}))) as BackendLoginResponse;
 
   if (!response.ok) {
     const message = data.erro || data.error || data.detail || 'Não foi possível autenticar no backend.';
-    throw new Error(message);
+    const error = new Error(message) as Error & { status?: number };
+    error.status = response.status;
+    throw error;
   }
 
   const accessToken = data.token || data.access;

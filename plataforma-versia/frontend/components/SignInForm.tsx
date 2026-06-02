@@ -1,7 +1,6 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getClientUser } from '@/lib/clientUser';
 import { DEMO_LOGIN_ENABLED, isApiConfigured, loginWithBackend, loginWithDemo } from '@/lib/versiaApi';
@@ -11,7 +10,6 @@ interface SignInFormProps {
 }
 
 export function SignInForm({ buttonClass }: SignInFormProps) {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -19,11 +17,25 @@ export function SignInForm({ buttonClass }: SignInFormProps) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (typeof document !== 'undefined' && document.cookie.includes('versia_session=1')) {
+    if (typeof window === 'undefined') return;
+
+    const alreadyAuthenticated =
+      document.cookie.includes('versia_session=1') ||
+      localStorage.getItem('versia_session') === '1';
+
+    if (alreadyAuthenticated) {
       const user = getClientUser();
-      router.replace(user.role === 'company' ? '/company' : '/dashboard');
+      window.location.replace(user.role === 'company' ? '/company' : '/dashboard');
     }
-  }, [router]);
+  }, []);
+
+  function finishLogin(redirectTo: string) {
+    // Força uma navegação completa após salvar cookie/localStorage.
+    // Isso evita o bug em produção onde o App Router só reconhecia a sessão após F5.
+    window.setTimeout(() => {
+      window.location.assign(redirectTo);
+    }, 50);
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -53,9 +65,15 @@ export function SignInForm({ buttonClass }: SignInFormProps) {
     setLoading(true);
 
     try {
+      if (DEMO_LOGIN_ENABLED && lowerEmail === 'motiron@gmail.com') {
+        const demoLogin = loginWithDemo(normalizedEmail, password);
+        finishLogin(demoLogin.redirectTo);
+        return;
+      }
+
       const backendLogin = await loginWithBackend(normalizedEmail, password);
       if (backendLogin) {
-        router.push(backendLogin.redirectTo);
+        finishLogin(backendLogin.redirectTo);
         return;
       }
 
@@ -65,15 +83,18 @@ export function SignInForm({ buttonClass }: SignInFormProps) {
       }
 
       const demoLogin = loginWithDemo(normalizedEmail, password);
-      router.push(demoLogin.redirectTo);
+      finishLogin(demoLogin.redirectTo);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erro ao entrar na plataforma.';
-      const canFallbackToMotironDemo = DEMO_LOGIN_ENABLED && lowerEmail === 'motiron@gmail.com' && password === '123456';
-      const canFallbackWithoutApi = DEMO_LOGIN_ENABLED && !isApiConfigured();
+      const status = typeof error === 'object' && error !== null && 'status' in error
+        ? Number((error as { status?: number }).status)
+        : undefined;
+      const isCredentialError = status === 400 || status === 401 || status === 403;
+      const canFallbackToDemo = DEMO_LOGIN_ENABLED && (!isCredentialError || !isApiConfigured());
 
-      if (canFallbackToMotironDemo || canFallbackWithoutApi) {
+      if (canFallbackToDemo) {
         const demoLogin = loginWithDemo(normalizedEmail, password);
-        router.push(demoLogin.redirectTo);
+        finishLogin(demoLogin.redirectTo);
         return;
       }
 
