@@ -25,7 +25,18 @@ Frontend continua na **Vercel**. Backend Django no **Render** + banco **Supabase
 
 ### Alternativa: Docker
 
-Use o `Dockerfile` em `plataforma-versia/backend` (Runtime → Docker). O `entrypoint.sh` já roda migrações e collectstatic.
+| Campo | Valor |
+|-------|--------|
+| **Runtime** | Docker |
+| **Root Directory** | `plataforma-versia/backend` |
+| **Dockerfile Path** | `./Dockerfile` |
+| **Pre-Deploy Command** | `python manage.py migrate_schemas --shared --noinput && python manage.py migrate_schemas --noinput` |
+| **Health Check Path** | `/health/` |
+
+O `Dockerfile` **não** usa mais `entrypoint.sh` (evita deploy failed sem `DATABASE_URL` no start).  
+`collectstatic` roda no **build**; migrações no **Pre-Deploy** (exige `DATABASE_URL` do Supabase nas env vars).
+
+> **Recomendado:** Runtime **Python 3** (tabela acima) — mais simples que Docker no Render.
 
 ---
 
@@ -74,18 +85,17 @@ postgresql://postgres.[PROJECT-REF]:[SENHA-URL-ENCODED]@aws-0-[regiao].pooler.su
 
 **Render Python (sem Docker):** o `entrypoint.sh` **não roda** — use **Pre-Deploy** para migrações (tabela acima).
 
-**Render Docker:** o `entrypoint.sh` espera o banco antes das migrações; os logs mostram o erro real de conexão após as tentativas.
+### Deploy failed (`5a9b002`, `42aca0e`, etc.)
 
-Para pular a espera (só se o banco já estiver up): `SKIP_DB_WAIT=1`.
+Quase sempre falta ou está errada a **`DATABASE_URL`** do Supabase.
 
-### Deploy falhou no commit `5a9b002` ou similar
+1. Render → **Environment** → `DATABASE_URL` = URI Session (5432) + `?sslmode=require`
+2. **Logs** (runtime): `DATABASE_URL nao definida` = variável não criada ou não salva
+3. **Pre-Deploy** (Docker): mesma `DATABASE_URL` — migrações rodam antes do container subir
+4. **Health Check Path:** `/health/`
+5. Não vincule “PostgreSQL” do Render — só Supabase
 
-1. Abra **Logs** do serviço (não só o build) e procure:
-   - `DATABASE_URL nao definida` → adicione a URI do Supabase em **Environment**
-   - `password authentication failed` → senha/URI incorreta
-   - `timeout` / `could not connect` → Supabase pausado ou URL sem `sslmode=require`
-2. **Health Check Path** no Render: `/health/`
-3. Se migrações já rodam no **Pre-Deploy**, no Docker pode definir `RUN_STARTUP_MIGRATIONS=0` para só migrar uma vez.
+`entrypoint.sh` + `scripts/wait_for_db.py` ficam só para uso local (`docker run --entrypoint /app/entrypoint.sh`).
 
 ---
 

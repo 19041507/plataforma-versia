@@ -1,0 +1,14 @@
+# Blueprint Render — Docker (opcional)
+# No dashboard: Runtime = Docker, Root Directory = plataforma-versia/backend
+# Cole DATABASE_URL do Supabase em Environment (obrigatório).
+services:
+  - type: web
+    name: versia-api
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: plataforma-versia/backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health/
+    preDeployCommand: python manage.py migrate_schemas --shared --noinput && python manage.py migrate_schemas --noinput
