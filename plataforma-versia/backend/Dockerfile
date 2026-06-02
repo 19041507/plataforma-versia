@@ -24,15 +24,15 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copia o código do backend
 COPY . .
 
-# Permissão de execução no entrypoint
-RUN chmod +x /app/entrypoint.sh
+# LF no entrypoint (evita "exec format error" com CRLF do Windows)
+RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 # Porta do Gunicorn (Railway define $PORT dinamicamente, mas expomos 8000 como documentação)
 EXPOSE 8000
 
-# Healthcheck adaptativo
-HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-    CMD python -c "import urllib.request, os; port = os.getenv('PORT', '8000'); urllib.request.urlopen(f'http://localhost:{port}/')" || exit 1
+# Healthcheck (mesmo path que o Render: /health/)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+    CMD python -c "import urllib.request, os; port = os.getenv('PORT', '8000'); urllib.request.urlopen(f'http://127.0.0.1:{port}/health/')" || exit 1
 
 # Entrypoint: aguarda DB + migrações + collectstatic
 ENTRYPOINT ["/app/entrypoint.sh"]

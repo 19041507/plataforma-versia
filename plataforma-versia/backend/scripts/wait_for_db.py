@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Aguarda o PostgreSQL ficar acessível (Render + Supabase)."""
+"""Aguarda o PostgreSQL (Supabase) ficar acessível — mesma lógica do Django settings."""
 from __future__ import annotations
 
 import os
@@ -7,7 +7,7 @@ import sys
 import time
 
 
-def main() -> None:
+def _connect_params() -> dict:
     db_url = os.getenv('DATABASE_URL', '').strip()
     if not db_url:
         print('❌ DATABASE_URL não está definida no ambiente.', file=sys.stderr)
@@ -16,41 +16,56 @@ def main() -> None:
     if db_url.startswith('postgres://'):
         db_url = 'postgresql://' + db_url[len('postgres://') :]
 
-    max_attempts = int(os.getenv('DB_WAIT_MAX_ATTEMPTS', '30'))
-    interval = float(os.getenv('DB_WAIT_INTERVAL', '2'))
+    import dj_database_url
 
+    debug = os.getenv('DEBUG', 'False').lower() in ('1', 'true', 'yes')
+    cfg = dj_database_url.parse(db_url, conn_max_age=0, ssl_require=not debug)
+
+    params = {
+        'dbname': cfg.get('NAME'),
+        'user': cfg.get('USER'),
+        'password': cfg.get('PASSWORD'),
+        'host': cfg.get('HOST'),
+        'port': cfg.get('PORT') or 5432,
+        'connect_timeout': 10,
+    }
+    options = cfg.get('OPTIONS') or {}
+    if 'sslmode' in options:
+        params['sslmode'] = options['sslmode']
+    elif 'pooler.supabase.com' in db_url or not debug:
+        params['sslmode'] = 'require'
+
+    return params, db_url
+
+
+def main() -> None:
     import psycopg2
 
-    print(f'⏳ Aguardando PostgreSQL (até {max_attempts} tentativas)...')
+    params, db_url = _connect_params()
+    host_hint = f"{params.get('host')}:{params.get('port')}"
+
+    max_attempts = int(os.getenv('DB_WAIT_MAX_ATTEMPTS', '15'))
+    interval = float(os.getenv('DB_WAIT_INTERVAL', '2'))
+
+    print(f'⏳ Aguardando PostgreSQL em {host_hint} (até {max_attempts} tentativas)...')
 
     last_error: Exception | None = None
     for attempt in range(1, max_attempts + 1):
         try:
-            conn = psycopg2.connect(db_url, connect_timeout=10)
+            conn = psycopg2.connect(**params)
             conn.close()
             print('✅ PostgreSQL pronto!')
             return
-        except Exception as exc:  # noqa: BLE001 — log de conexão
+        except Exception as exc:  # noqa: BLE001
             last_error = exc
-            host_hint = ''
-            if '@' in db_url:
-                host_hint = db_url.split('@', 1)[1].split('/')[0].split('?')[0]
-            print(
-                f'  [{attempt}/{max_attempts}] indisponível'
-                f'{f" ({host_hint})" if host_hint else ""}: {exc}',
-                file=sys.stderr,
-            )
+            print(f'  [{attempt}/{max_attempts}] {exc}', file=sys.stderr)
             if attempt < max_attempts:
                 time.sleep(interval)
 
-    print('\n❌ Não foi possível conectar ao banco.', file=sys.stderr)
+    print('\n❌ Não foi possível conectar ao Supabase.', file=sys.stderr)
     print(
-        '\nSupabase + Render — confira:\n'
-        '  1. Supabase → Settings → Database → URI (modo Session, porta 5432)\n'
-        '  2. Adicione ?sslmode=require no final da URL\n'
-        '  3. Senha com @ # % etc. deve estar URL-encoded na URI\n'
-        '  4. Projeto Supabase pausado? Abra o dashboard e retome o banco\n'
-        '  5. Em Render → Environment, DATABASE_URL sem aspas extras\n',
+        '\nRender → Environment → DATABASE_URL (URI Session, porta 5432, ?sslmode=require)\n'
+        'Não use banco PostgreSQL do Render — só o Supabase.\n',
         file=sys.stderr,
     )
     if last_error:

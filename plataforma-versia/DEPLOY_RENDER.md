@@ -2,6 +2,8 @@
 
 Frontend continua na **Vercel**. Backend Django no **Render** + banco **Supabase** (PostgreSQL).
 
+> **Banco:** use **somente o PostgreSQL do Supabase**. Não crie “PostgreSQL” no Render nem use `DB_HOST=postgres` do Docker local — o backend lê **`DATABASE_URL`** apontando para o seu projeto Supabase.
+
 ## 1. Criar Web Service no Render
 
 1. [dashboard.render.com](https://dashboard.render.com) → **New +** → **Web Service**
@@ -29,11 +31,22 @@ Use o `Dockerfile` em `plataforma-versia/backend` (Runtime → Docker). O `entry
 
 ## 2. Variáveis de ambiente (Render → Environment)
 
+### Passo a passo — Supabase → Render
+
+1. [supabase.com](https://supabase.com) → seu projeto → **Project Settings** → **Database**
+2. Em **Connection string**, escolha **URI** e **Session** (porta **5432**)
+3. Copie a string, substitua `[YOUR-PASSWORD]` pela senha do banco (ou use a senha já codificada que o painel mostra)
+4. Garanta no final: **`?sslmode=require`**
+5. No Render: **Environment** → **Add** → chave `DATABASE_URL` → cole o valor **sem aspas**
+6. **Save** e **Manual Deploy** (ou aguarde redeploy automático)
+
+Não é necessário vincular “PostgreSQL” do Render ao serviço.
+
 | Variável | Exemplo | Obrigatório |
 |----------|---------|-------------|
 | `SECRET_KEY` | chave longa aleatória | Sim |
 | `DEBUG` | `False` | Sim |
-| `DATABASE_URL` | URI Supabase (`?sslmode=require`) | Sim |
+| `DATABASE_URL` | URI do **seu** projeto Supabase (`?sslmode=require`) | Sim |
 | `ALLOWED_HOSTS` | `versia-api.onrender.com` | Sim |
 | `CORS_ALLOWED_ORIGINS` | URL do frontend Vercel | Sim |
 | `CSRF_TRUSTED_ORIGINS` | mesma URL do frontend | Sim |
@@ -63,7 +76,16 @@ postgresql://postgres.[PROJECT-REF]:[SENHA-URL-ENCODED]@aws-0-[regiao].pooler.su
 
 **Render Docker:** o `entrypoint.sh` espera o banco antes das migrações; os logs mostram o erro real de conexão após as tentativas.
 
-Para pular a espera (só se o banco já estiver up): `DB_WAIT_MAX_ATTEMPTS=5`.
+Para pular a espera (só se o banco já estiver up): `SKIP_DB_WAIT=1`.
+
+### Deploy falhou no commit `5a9b002` ou similar
+
+1. Abra **Logs** do serviço (não só o build) e procure:
+   - `DATABASE_URL nao definida` → adicione a URI do Supabase em **Environment**
+   - `password authentication failed` → senha/URI incorreta
+   - `timeout` / `could not connect` → Supabase pausado ou URL sem `sslmode=require`
+2. **Health Check Path** no Render: `/health/`
+3. Se migrações já rodam no **Pre-Deploy**, no Docker pode definir `RUN_STARTUP_MIGRATIONS=0` para só migrar uma vez.
 
 ---
 
