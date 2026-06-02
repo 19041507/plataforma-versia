@@ -39,12 +39,6 @@ export default function LoginMobilePage() {
           </div>
 
           <SignInForm />
-
-          <div className="mt-4 mb-4 text-center">
-            <a href="#" className="text-sm text-[#63E3FF] hover:underline">
-              Esqueceu sua senha?
-            </a>
-          </div>
         </div>
       </div>
     </div>

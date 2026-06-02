@@ -47,12 +47,6 @@ export default function LoginDesktopPage() {
           </div>
 
           <SignInForm />
-
-          <div className="mt-8 text-center">
-            <a href="#" className="text-sm text-[#63E3FF] hover:underline">
-              Esqueceu sua senha?
-            </a>
-          </div>
         </div>
       </div>
     </div>
