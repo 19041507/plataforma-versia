@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import '../src/styles/index.css';
+import { AuthGate } from '@/components/AuthGate';
 
 export const metadata: Metadata = {
   title: 'Versia — Plataforma de Treinamento Corporativo',
@@ -15,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body><AuthGate />{children}</body>
     </html>
   );
 }

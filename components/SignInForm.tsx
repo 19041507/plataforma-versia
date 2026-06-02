@@ -3,7 +3,8 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { buildUserFromEmail, getClientUser } from '@/lib/clientUser';
+import { getClientUser } from '@/lib/clientUser';
+import { DEMO_LOGIN_ENABLED, isApiConfigured, loginWithBackend, loginWithDemo } from '@/lib/versiaApi';
 
 interface SignInFormProps {
   buttonClass?: string;
@@ -24,7 +25,7 @@ export function SignInForm({ buttonClass }: SignInFormProps) {
     }
   }, [router]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
 
@@ -51,17 +52,35 @@ export function SignInForm({ buttonClass }: SignInFormProps) {
 
     setLoading(true);
 
-    const role = lowerEmail === 'motiron@gmail.com' ? 'company' : 'student';
-    const user = buildUserFromEmail(normalizedEmail, role);
-    const maxAge = 60 * 60 * 24 * 30;
-    const encodedUser = encodeURIComponent(JSON.stringify(user));
+    try {
+      const backendLogin = await loginWithBackend(normalizedEmail, password);
+      if (backendLogin) {
+        router.push(backendLogin.redirectTo);
+        return;
+      }
 
-    document.cookie = `versia_session=1; Path=/; SameSite=Lax; Max-Age=${maxAge}`;
-    document.cookie = `versia_user=${encodedUser}; Path=/; SameSite=Lax; Max-Age=${maxAge}`;
-    localStorage.setItem('versia_session', '1');
-    localStorage.setItem('versia_user', JSON.stringify(user));
+      if (!DEMO_LOGIN_ENABLED) {
+        setError('Configure NEXT_PUBLIC_API_URL na Vercel para usar o backend da Versia.');
+        return;
+      }
 
-    router.push(role === 'company' ? '/company' : '/dashboard');
+      const demoLogin = loginWithDemo(normalizedEmail, password);
+      router.push(demoLogin.redirectTo);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro ao entrar na plataforma.';
+      const canFallbackToMotironDemo = DEMO_LOGIN_ENABLED && lowerEmail === 'motiron@gmail.com' && password === '123456';
+      const canFallbackWithoutApi = DEMO_LOGIN_ENABLED && !isApiConfigured();
+
+      if (canFallbackToMotironDemo || canFallbackWithoutApi) {
+        const demoLogin = loginWithDemo(normalizedEmail, password);
+        router.push(demoLogin.redirectTo);
+        return;
+      }
+
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   }
 
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut, X } from "lucide-react";
+import { clearClientAuth, logoutFromBackend } from "@/lib/versiaApi";
 
 interface LogoutButtonProps {
   variant?: "sidebar" | "header";
@@ -12,15 +13,12 @@ export function LogoutButton({ variant = "sidebar" }: LogoutButtonProps) {
   const router = useRouter();
   const [showConfirm, setShowConfirm] = useState(false);
 
-  function handleLogout() {
+  async function handleLogout() {
     try {
-      document.cookie = 'versia_session=; Path=/; Max-Age=0; SameSite=Lax';
-      document.cookie = 'versia_user=; Path=/; Max-Age=0; SameSite=Lax';
-      localStorage.removeItem('versia_user');
-      localStorage.removeItem('versia_session');
-      sessionStorage.clear();
+      await logoutFromBackend();
+      clearClientAuth();
     } catch {
-      // Mantém a saída funcionando mesmo se o armazenamento estiver indisponível.
+      clearClientAuth();
     }
 
     router.push('/login-desktop');
