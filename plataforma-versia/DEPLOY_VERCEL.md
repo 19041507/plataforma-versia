@@ -30,7 +30,8 @@ Em produção com domínio único na Vercel, o tenant é resolvido pelo header *
 
 1. [vercel.com/new](https://vercel.com/new) → importe o repositório.
 2. **Root Directory:** `plataforma-versia/backend` (**obrigatório** para evitar erro de caminho duplicado no `uv lock`).
-3. Framework: **Other** (Python). Não defina Build Command no painel — o `vercel.json` roda `build_files.sh` via `package.json` + `@vercel/static-build`.
+3. Framework: **Other** (Python). O `build_files.sh` roda no **`installCommand`** do `@vercel/python` (já com Django instalado). **Não** use `npm run vercel-build`.
+4. Sempre faça deploy do **último commit** da `dev` — **Redeploy** de deploy antigo repete commit velho (ex.: `b362fb2`).
 
 > Se aparecer no log: `WARNING! Due to builds existing...` — é esperado com Django. O importante é ver no log linhas como `Coletando arquivos estáticos` e `Migrações` (vindas do `build_files.sh`).
 
@@ -126,7 +127,7 @@ O `build_files.sh` **não rodou**. Causas comuns:
 
 1. **Root Directory errado** — alinhe com a tabela acima (backend ou raiz do repo).
 2. **Erro `Distribution not found at: .../plataforma-versia/backend/plataforma-versia/backend/...`** — Root Directory está na raiz do repo em vez de `plataforma-versia/backend`. Corrija nas Settings do projeto.
-3. O `build_files.sh` roda no build `@vercel/static-build` (script `vercel-build` no `package.json`), não via dependência local no `requirements.txt`.
+3. Erro `No module named 'django'` no `vercel-build` — você está em commit antigo ou com `static-build`/npm antes do Python. Use commit recente com só `@vercel/python` + `installCommand`.
 4. Confira no log: `Coletando arquivos estáticos` e commit recente da `dev`.
 4. **`DATABASE_URL` no build** — em Settings → Environment Variables, marque `DATABASE_URL` para **Production, Preview e Development** (incluindo builds), senão as migrações são puladas.
 

@@ -7,14 +7,8 @@
       "use": "@vercel/python",
       "config": {
         "maxLambdaSize": "50mb",
-        "runtime": "python3.12"
-      }
-    },
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "staticfiles"
+        "runtime": "python3.12",
+        "installCommand": "pip install -r requirements.txt && bash build_files.sh"
       }
     }
   ],

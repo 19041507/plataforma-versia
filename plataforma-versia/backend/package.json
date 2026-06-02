@@ -1,8 +1,5 @@
 {
   "name": "versia-backend",
   "private": true,
-  "scripts": {
-    "build": "bash build_files.sh",
-    "vercel-build": "bash build_files.sh"
-  }
+  "description": "Build Django roda via installCommand no vercel.json (@vercel/python), não via npm."
 }
