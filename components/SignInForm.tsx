@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getClientUser } from '@/lib/clientUser';
+import { buildUserFromEmail, getClientUser } from '@/lib/clientUser';
 
 interface SignInFormProps {
   buttonClass?: string;
@@ -24,18 +24,24 @@ export function SignInForm({ buttonClass }: SignInFormProps) {
     }
   }, [router]);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const normalizedEmail = email.trim();
+    const lowerEmail = normalizedEmail.toLowerCase();
 
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(normalizedEmail)) {
       setError('Por favor, insira um e-mail corporativo válido.');
       return;
     }
     if (password.length < 6) {
       setError('A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+    if (lowerEmail === 'motiron@gmail.com' && password !== '123456') {
+      setError('Senha incorreta para o acesso empresarial da Motiron.');
       return;
     }
     if (!acceptedTerms) {
@@ -45,28 +51,19 @@ export function SignInForm({ buttonClass }: SignInFormProps) {
 
     setLoading(true);
 
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: email.trim(), password }),
-      });
+    const role = lowerEmail === 'motiron@gmail.com' ? 'company' : 'student';
+    const user = buildUserFromEmail(normalizedEmail, role);
+    const maxAge = 60 * 60 * 24 * 30;
+    const encodedUser = encodeURIComponent(JSON.stringify(user));
 
-      const data = await response.json();
-      if (!response.ok) {
-        setError(data?.error ?? 'Falha ao autenticar.');
-        setLoading(false);
-        return;
-      }
+    document.cookie = `versia_session=1; Path=/; SameSite=Lax; Max-Age=${maxAge}`;
+    document.cookie = `versia_user=${encodedUser}; Path=/; SameSite=Lax; Max-Age=${maxAge}`;
+    localStorage.setItem('versia_session', '1');
+    localStorage.setItem('versia_user', JSON.stringify(user));
 
-      router.push(data?.redirectTo ?? '/dashboard');
-    } catch (err) {
-      setError('Erro ao conectar. Tente novamente.');
-      setLoading(false);
-    }
+    router.push(role === 'company' ? '/company' : '/dashboard');
   }
+
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>

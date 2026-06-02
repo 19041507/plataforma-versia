@@ -63,27 +63,38 @@ export function buildUserFromEmail(email: string, role: VersiaUserRole = 'studen
 export function getClientUser(): VersiaUser {
   if (typeof document === 'undefined') return DEFAULT_USER;
 
-  const cookie = document.cookie
-    .split('; ')
-    .find((item) => item.startsWith('versia_user='));
-
-  if (!cookie) return DEFAULT_USER;
-
-  try {
-    const value = decodeURIComponent(cookie.split('=')[1] ?? '');
-    const parsed = JSON.parse(value) as Partial<VersiaUser>;
-    const baseUser = buildUserFromEmail(parsed.email || DEFAULT_USER.email, parsed.role === 'company' ? 'company' : 'student');
+  const normalizeUser = (parsed: Partial<VersiaUser>): VersiaUser => {
+    const role: VersiaUserRole = parsed.role === 'company' ? 'company' : 'student';
+    const baseUser = buildUserFromEmail(parsed.email || DEFAULT_USER.email, role);
 
     return {
       ...baseUser,
       ...parsed,
-      role: parsed.role === 'company' ? 'company' : 'student',
+      role,
       name: parsed.name || baseUser.name,
       email: parsed.email || baseUser.email,
     };
+  };
+
+  const cookie = document.cookie
+    .split('; ')
+    .find((item) => item.startsWith('versia_user='));
+
+  try {
+    if (cookie) {
+      const value = decodeURIComponent(cookie.split('=')[1] ?? '');
+      return normalizeUser(JSON.parse(value) as Partial<VersiaUser>);
+    }
+
+    const savedUser = localStorage.getItem('versia_user');
+    if (savedUser) {
+      return normalizeUser(JSON.parse(savedUser) as Partial<VersiaUser>);
+    }
   } catch {
     return DEFAULT_USER;
   }
+
+  return DEFAULT_USER;
 }
 
 export function getUserInitials(name: string) {

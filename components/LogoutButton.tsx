@@ -12,14 +12,10 @@ export function LogoutButton({ variant = "sidebar" }: LogoutButtonProps) {
   const router = useRouter();
   const [showConfirm, setShowConfirm] = useState(false);
 
-  async function handleLogout() {
+  function handleLogout() {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch {
-      // Se a rota falhar, ainda redirecionamos para fora da área autenticada.
-    }
-
-    try {
+      document.cookie = 'versia_session=; Path=/; Max-Age=0; SameSite=Lax';
+      document.cookie = 'versia_user=; Path=/; Max-Age=0; SameSite=Lax';
       localStorage.removeItem('versia_user');
       localStorage.removeItem('versia_session');
       sessionStorage.clear();
@@ -29,6 +25,7 @@ export function LogoutButton({ variant = "sidebar" }: LogoutButtonProps) {
 
     router.push('/login-desktop');
   }
+
 
   const buttonClass = variant === "header"
     ? "px-4 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2 text-sm md:text-base"
