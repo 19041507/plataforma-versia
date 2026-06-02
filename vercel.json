@@ -3,19 +3,18 @@
   "version": 2,
   "builds": [
     {
-      "src": "plataforma-versia/backend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "buildCommand": "cd plataforma-versia/backend && bash build_files.sh",
-        "distDir": "plataforma-versia/backend/staticfiles"
-      }
-    },
-    {
       "src": "plataforma-versia/backend/config/wsgi.py",
       "use": "@vercel/python",
       "config": {
         "maxLambdaSize": "50mb",
         "runtime": "python3.12"
+      }
+    },
+    {
+      "src": "plataforma-versia/backend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "plataforma-versia/backend/staticfiles"
       }
     }
   ],

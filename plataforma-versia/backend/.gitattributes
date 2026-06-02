@@ -1,0 +1,2 @@
+build_files.sh text eol=lf
+entrypoint.sh text eol=lf
