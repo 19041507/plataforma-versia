@@ -127,7 +127,7 @@ Helper de API no frontend: `frontend/lib/api.ts` (`apiFetch`, header `X-Tenant`)
 O `build_files.sh` **não rodou**. Causas comuns:
 
 1. **Root Directory errado** — alinhe com a tabela acima (backend ou raiz do repo).
-2. **`builds` no vercel.json** — o painel da Vercel não aplica Build/Install customizados; o `build_files.sh` roda ao compilar o pacote `./_vercel_build` (última linha do `requirements.txt`).
+2. **`builds` no vercel.json** — o painel da Vercel não aplica Build/Install customizados; o `build_files.sh` roda ao compilar o pacote `./vercel_build_hook` (última linha do `requirements.txt`). O nome da pasta **não pode** começar com `_` (o `uv lock` da Vercel rejeita).
 3. Confira no log se o commit é o mais recente da `dev` (não use **Redeploy** de deploy antigo) e se aparecem `[versia-vercel-build] Executando build_files.sh`.
 4. **`DATABASE_URL` no build** — em Settings → Environment Variables, marque `DATABASE_URL` para **Production, Preview e Development** (incluindo builds), senão as migrações são puladas.
 

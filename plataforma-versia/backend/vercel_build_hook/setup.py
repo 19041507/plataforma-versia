@@ -38,6 +38,6 @@ class BuildPyRunBackendBuild(build_py):
 setup(
     name="versia-vercel-build",
     version="0.0.0",
-    py_modules=[],
+    py_modules=["versia_vercel_build"],
     cmdclass={"build_py": BuildPyRunBackendBuild},
 )
