@@ -18,8 +18,8 @@
 ## Log de build esperado
 
 - `Installing ... requirements.txt` (sem prefixo `plataforma-versia/backend/`)
-- `Running "bash build_files.sh"` ou `Coletando arquivos estáticos`
-- **Sem** `WARNING! Due to builds existing`
-- **Sem** `uv lock` em `vercel_postbuild`
+- `@vercel/python` em `api/index.py` (obrigatório — `pip` sozinho falha sem runtime Python)
+- `Coletando arquivos estáticos` (via `build_files.sh` no `installCommand` do build)
+- Pode aparecer `WARNING! Due to builds existing` — é normal nesta configuração
 
 Guia completo: `../DEPLOY_VERCEL.md`
