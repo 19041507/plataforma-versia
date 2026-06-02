@@ -1,22 +1,39 @@
-# Deploy do Frontend da Versia na Vercel
+# Deploy do Frontend Versia na Vercel
 
-Use este projeto como **frontend**. O backend Django deve ficar separado, por exemplo no Render, e o banco no Neon.
+Use este projeto como a pasta `frontend` do repositório.
 
-## Configuração na Vercel
+## Configurações na Vercel
 
-- Framework Preset: Next.js
-- Install Command: `corepack enable && corepack prepare pnpm@10.34.1 --activate && pnpm install --no-frozen-lockfile`
-- Build Command: `corepack enable && corepack prepare pnpm@10.34.1 --activate && pnpm run build`
-- Output Directory: `out`
+Root Directory:
 
-## Variáveis do frontend
+```txt
+plataforma-versia/frontend
+```
 
-```env
+Install Command:
+
+```txt
+npm install --legacy-peer-deps --no-audit --no-fund
+```
+
+Build Command:
+
+```txt
+npm run build
+```
+
+Output Directory:
+
+```txt
+out
+```
+
+## Variáveis de ambiente
+
+```txt
 NEXT_PUBLIC_API_URL=https://seu-backend.onrender.com
 NEXT_PUBLIC_TENANT_SCHEMA=demo
 NEXT_PUBLIC_DEMO_LOGIN_ENABLED=true
 ```
 
-## Observação
-
-Este frontend foi configurado para não depender de backend interno da Vercel. O login tenta usar o backend definido em `NEXT_PUBLIC_API_URL` e mantém login demo quando `NEXT_PUBLIC_DEMO_LOGIN_ENABLED=true`.
+Depois de alterar as configurações, faça Redeploy com Clear Build Cache.
