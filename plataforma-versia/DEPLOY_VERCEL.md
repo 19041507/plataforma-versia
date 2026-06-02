@@ -29,10 +29,8 @@ Em produção com domínio único na Vercel, o tenant é resolvido pelo header *
 ### Criar projeto
 
 1. [vercel.com/new](https://vercel.com/new) → importe o repositório.
-2. **Root Directory** (escolha **uma** opção):
-   - **Recomendado:** `plataforma-versia/backend` → usa `plataforma-versia/backend/vercel.json`
-   - **Alternativa:** deixe vazio (raiz do repo) → usa `/vercel.json` na raiz do GitHub
-3. Framework: **Other** (Python). Não defina Build Command manualmente no painel — o `vercel.json` já cuida disso.
+2. **Root Directory:** `plataforma-versia/backend` (**obrigatório** para evitar erro de caminho duplicado no `uv lock`).
+3. Framework: **Other** (Python). Não defina Build Command no painel — o `vercel.json` roda `build_files.sh` via `package.json` + `@vercel/static-build`.
 
 > Se aparecer no log: `WARNING! Due to builds existing...` — é esperado com Django. O importante é ver no log linhas como `Coletando arquivos estáticos` e `Migrações` (vindas do `build_files.sh`).
 
@@ -127,8 +125,9 @@ Helper de API no frontend: `frontend/lib/api.ts` (`apiFetch`, header `X-Tenant`)
 O `build_files.sh` **não rodou**. Causas comuns:
 
 1. **Root Directory errado** — alinhe com a tabela acima (backend ou raiz do repo).
-2. **`builds` no vercel.json** — o painel da Vercel não aplica Build/Install customizados; o `build_files.sh` roda ao compilar o pacote `./vercel_build_hook` (última linha do `requirements.txt`). O nome da pasta **não pode** começar com `_` (o `uv lock` da Vercel rejeita).
-3. Confira no log se o commit é o mais recente da `dev` (não use **Redeploy** de deploy antigo) e se aparecem `[versia-vercel-build] Executando build_files.sh`.
+2. **Erro `Distribution not found at: .../plataforma-versia/backend/plataforma-versia/backend/...`** — Root Directory está na raiz do repo em vez de `plataforma-versia/backend`. Corrija nas Settings do projeto.
+3. O `build_files.sh` roda no build `@vercel/static-build` (script `vercel-build` no `package.json`), não via dependência local no `requirements.txt`.
+4. Confira no log: `Coletando arquivos estáticos` e commit recente da `dev`.
 4. **`DATABASE_URL` no build** — em Settings → Environment Variables, marque `DATABASE_URL` para **Production, Preview e Development** (incluindo builds), senão as migrações são puladas.
 
 ### Build do frontend: erro `@next/swc-*` 404
